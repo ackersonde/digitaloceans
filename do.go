@@ -47,6 +47,7 @@ func main() {
 		fmt.Printf("%s: %s @%s\n", ipv4, droplet.Name, addr)
 	}
 
+	// this cmd only works in Ubuntu 14.04 (default image in CircleCI)
 	sshKeygenCmd := "ssh-keygen -lf /dev/stdin <<< $(echo $(echo $encodedDOSSHLoginPubKey | base64 --decode)) | awk '{print $2}'"
 	doSSHFingerprint, err := exec.Command("/bin/bash", "-c", sshKeygenCmd).Output()
 	if err != nil {
