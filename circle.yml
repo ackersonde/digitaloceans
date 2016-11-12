@@ -6,7 +6,6 @@ dependencies:
   override:
     - go get -t -d -v ./...
     - ./set_env.sh
-    - cat digitalocean_ignition.json
 
 deployment:
   live:

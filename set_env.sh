@@ -2,8 +2,6 @@
 export doSSHPubKey=$(echo $encodedDOSSHLoginPubKey | base64 --decode)
 export circleCIDeployPubKey=$(echo $encodedCircleCIDeployPubKey | base64 --decode)
 export consolePasswdHash=$(echo $encodedConsolePasswdHash | base64 --decode)
-export doSSHFingerprint=$(ssh-keygen -lf /dev/stdin <<< $(echo $doSSHPubKey) | awk '{print $2}')
-export doPersonalAccessToken=$doPersonalAccessToken
 sed -i -e "s@{{login_ssh_pubkey}}@$doSSHPubKey@" digitalocean_ignition.json
 sed -i -e "s@{{circleci_deploy_pubkey}}@$circleCIDeployPubKey@" digitalocean_ignition.json
 sed -i -e "s/{{console_passwd_hash}}/$consolePasswdHash/" digitalocean_ignition.json

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"strconv"
 
 	"github.com/digitalocean/godo"
@@ -12,7 +13,7 @@ import (
 
 var doDropletInfoSite = "https://cloud.digitalocean.com/droplets/"
 
-var doSSHFingerprint = os.Getenv("doSSHFingerprint")
+var encodedDOSSHLoginPubKey = os.Getenv("encodedDOSSHLoginPubKey")
 var doPersonalAccessToken = os.Getenv("doPersonalAccessToken")
 var circleCIBuild = os.Getenv("CIRCLE_BUILD_NUM")
 
@@ -46,9 +47,18 @@ func main() {
 		fmt.Printf("%s: %s @%s\n", ipv4, droplet.Name, addr)
 	}
 
+	sshKeygenCmd := "ssh-keygen -lf /dev/stdin <<< $(echo $(echo $encodedDOSSHLoginPubKey | base64 --decode)) | awk '{print $2}'"
+	doSSHFingerprint, err := exec.Command("/bin/bash", "-c", sshKeygenCmd).Output()
+	if err != nil {
+		fmt.Printf("err: %s", err)
+	} else {
+		fmt.Printf("fingerprint: %s", doSSHFingerprint)
+	}
+
 	dropletName := "b" + circleCIBuild + ".ackerson.de"
+
 	sshKeys := []godo.DropletCreateSSHKey{}
-	sshKeys = append(sshKeys, godo.DropletCreateSSHKey{Fingerprint: doSSHFingerprint})
+	sshKeys = append(sshKeys, godo.DropletCreateSSHKey{Fingerprint: string(doSSHFingerprint)})
 
 	digitaloceanIgnitionJSON, err := ioutil.ReadFile("digitalocean_ignition.json")
 	if err != nil {
