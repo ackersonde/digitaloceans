@@ -1,6 +1,7 @@
 dependencies:
   override:
-    - docker version && go version
+    - docker version
+    - go version
     - go get -t -d -v ./...
 
 deployment:
