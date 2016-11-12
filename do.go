@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 
 	"github.com/digitalocean/godo"
 	"golang.org/x/oauth2"
@@ -50,16 +51,20 @@ func main() {
 	// this cmd only works in Ubuntu 14.04 (default image in CircleCI)
 	sshKeygenCmd := "ssh-keygen -lf /dev/stdin <<< $(echo $(echo $encodedDOSSHLoginPubKey | base64 --decode)) | awk '{print $2}'"
 	doSSHFingerprint, err := exec.Command("/bin/bash", "-c", sshKeygenCmd).Output()
+
+	fingerprint := ""
 	if err != nil {
 		fmt.Printf("err: %s", err)
 	} else {
+		fingerprint = string(doSSHFingerprint)
+		fingerprint = strings.TrimSpace(fingerprint)
 		fmt.Printf("fingerprint: %s", doSSHFingerprint)
 	}
 
 	dropletName := "b" + circleCIBuild + ".ackerson.de"
 
 	sshKeys := []godo.DropletCreateSSHKey{}
-	sshKeys = append(sshKeys, godo.DropletCreateSSHKey{Fingerprint: string(doSSHFingerprint)})
+	sshKeys = append(sshKeys, godo.DropletCreateSSHKey{Fingerprint: fingerprint})
 
 	digitaloceanIgnitionJSON, err := ioutil.ReadFile("digitalocean_ignition.json")
 	if err != nil {
