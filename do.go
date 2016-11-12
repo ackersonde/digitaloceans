@@ -66,6 +66,8 @@ func main() {
 			UserData: string(digitaloceanIgnitionJSON),
 		}
 
+		fmt.Printf("Droplet creation request: %v", createRequest)
+
 		newDroplet, _, err := client.Droplets.Create(createRequest)
 		if err != nil {
 			fmt.Printf("Something bad happened: %s\n\n", err)
