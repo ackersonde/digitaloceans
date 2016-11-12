@@ -1,8 +1,12 @@
+machine:
+  services:
+    - docker
+
 dependencies:
-  override:
-    - docker version
-    - go version
-    - go get -t -d -v ./...
+override:
+  - docker version
+  - go version
+  - go get -t -d -v ./...
 
 deployment:
   live:
