@@ -18,7 +18,7 @@ deployment:
       - sed -i -e "s/{{console_passwd_hash}}/$consolePasswdHash/" digitalocean_ignition.json
       - sed -i -e "s/{{deploy_user}}/$deployUser/" sshd_config
       - sed -i -e "s/{{deploy_user}}/$deployUser/" digitalocean_ignition.json
-      - export encodedSSHDConfig=$(base64 -i sshd_config)
+      - export encodedSSHDConfig=$(base64 -w 0 sshd_config)
       - sed -i -e "s/{{encoded_sshd_config}}/$encodedSSHDConfig/" digitalocean_ignition.json
       - export doSSHFingerprint=$(ssh-keygen -lf /dev/stdin <<< $(echo $doSSHPubKey) | awk '{print $2}')
       - export doPersonalAccessToken=$doPersonalAccessToken
