@@ -5,7 +5,8 @@ machine:
 dependencies:
   override:
     - go get -t -d -v ./...
-    - export doSSHPubKey=$(echo $encodedDOSSHLoginPubKey | base64 --decode)
+    - echo $encodedDOSSHLoginPubKey
+    - export doSSHPubKey=`echo $encodedDOSSHLoginPubKey | base64 --decode`
     - echo $doSSHPubKey
     - export circleCIDeployPubKey=$(echo $encodedCircleCIDeployPubKey | base64 --decode)
     - export consolePasswdHash=$(echo $encodedConsolePasswdHash | base64 --decode)
