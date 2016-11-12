@@ -14,6 +14,7 @@ var doDropletInfoSite = "https://cloud.digitalocean.com/droplets/"
 
 var doSSHFingerprint = os.Getenv("doSSHFingerprint")
 var doPersonalAccessToken = os.Getenv("doPersonalAccessToken")
+var circleCIBuild = os.Getenv("CIRCLE_BUILD_NUM")
 
 // TokenSource is now commented
 type TokenSource struct {
@@ -45,7 +46,7 @@ func main() {
 		fmt.Printf("%s: %s @%s\n", ipv4, droplet.Name, addr)
 	}
 
-	dropletName := ""
+	dropletName := "b" + circleCIBuild + ".ackerson.de"
 	sshKeys := []godo.DropletCreateSSHKey{}
 	sshKeys = append(sshKeys, godo.DropletCreateSSHKey{Fingerprint: doSSHFingerprint})
 
