@@ -1,0 +1,22 @@
+dependencies:
+  override:
+    - docker version && go version
+    - go get -t -d -v ./...
+
+deployment:
+  live:
+    branch: master
+    commands:
+      - export doSSHPubKey=$(echo $encodedDOSSHLoginPubKey | base64 --decode)
+      - sed -i -e "s/{{login_ssh_pubkey}}/$doSSHPubKey/" digitalocean_ignition.json
+      - export circleCIDeployPubKey=$(echo $encodedCircleCIDeployPubKey | base64 --decode)
+      - sed -i -e "s/{{circleci_deploy_pubkey}}/$circleCIDeployPubKey/" digitalocean_ignition.json
+      - export consolePasswdHash=$(echo $encodedConsolePasswdHash | base64 --decode)
+      - sed -i -e "s/{{console_passwd_hash}}/$consolePasswdHash/" digitalocean_ignition.json
+      - export deployUser=$deployUser
+      - sed -i -e "s/{{deploy_user}}/$deployUser/" sshd_config
+      - export encodedSSHDConfig=$(base64 -i sshd_config)
+      - sed -i -e "s/{{encoded_sshd_config}}/$encodedSSHDConfig/" digitalocean_ignition.json
+      - export doSSHFingerprint=$(echo $doSSHPubKey | ssh-keygen -E md5 -lf - | awk '{print $2}' | cut -d ":" -f2-)
+      - export doPersonalAccessToken=$doPersonalAccessToken
+      - go run do.go

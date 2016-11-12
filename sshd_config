@@ -1,0 +1,7 @@
+UsePrivilegeSeparation sandbox
+Subsystem sftp internal-sftp
+
+PermitRootLogin no
+AllowUsers {{deploy_user}}
+PasswordAuthentication no
+ChallengeResponseAuthentication no
