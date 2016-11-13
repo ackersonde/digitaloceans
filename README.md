@@ -1,4 +1,4 @@
-[<img src="https://jvandyke.gallerycdn.vsassets.io/extensions/jvandyke/vscode-circleci/0.1.2/1474455189849/Microsoft.VisualStudio.Services.Icons.Default" width="16"> <img src="https://circleci.com/gh/danackerson/digitalocean.svg?style=svg">](https://circleci.com/gh/danackerson/digitalocean)
+[<img src="https://jvandyke.gallerycdn.vsassets.io/extensions/jvandyke/vscode-circleci/0.1.2/1474455189849/Microsoft.VisualStudio.Services.Icons.Default" width="16">](https://circleci.com/gh/danackerson/digitalocean) ![](https://circleci.com/gh/danackerson/digitalocean.svg?style=svg)
 
 # Build & Deploy [DigitalOcean Droplet](https://cloud.digitalocean.com/droplets)
 Using the golang api from [godo](https://www.digitalocean.com/community/projects/godo), this CircleCI build creates a [custom](https://github.com/danackerson/digitalocean/blob/master/digitalocean_ignition.json) CoreOS <img src="https://coreos.com/assets/ico/favicon.png" width="16"> droplet in NYC3.
