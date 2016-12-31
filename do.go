@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"strconv"
-	"strings"
 
 	"github.com/digitalocean/godo"
 	"golang.org/x/oauth2"
@@ -48,19 +46,7 @@ func main() {
 		fmt.Printf("%s: %s @%s\n", ipv4, droplet.Name, addr)
 	}
 
-	// this cmd only works in Ubuntu 14.04 (default image in CircleCI)
-	sshKeygenCmd := "ssh-keygen -lf /dev/stdin <<< $(echo $(echo $encodedDOSSHLoginPubKey | base64 --decode)) | awk '{print $2}'"
-	doSSHFingerprint, err := exec.Command("/bin/bash", "-c", sshKeygenCmd).Output()
-
-	fingerprint := ""
-	if err != nil {
-		fmt.Printf("err: %s", err)
-	} else {
-		fingerprint = string(doSSHFingerprint)
-		fingerprint = strings.TrimSpace(fingerprint)
-		fmt.Printf("fingerprint: %s", doSSHFingerprint)
-	}
-
+	fingerprint := "e0:a3:4c:5a:5a:1b:9c:bb:b5:51:a7:7f:62:27:51:96"
 	dropletName := "b" + circleCIBuild + ".ackerson.de"
 
 	sshKeys := []godo.DropletCreateSSHKey{}
@@ -72,7 +58,7 @@ func main() {
 	} else {
 		createRequest := &godo.DropletCreateRequest{
 			Name:   dropletName,
-			Region: "nyc3",
+			Region: "fra1",
 			Size:   "512mb",
 			Image: godo.DropletCreateImage{
 				Slug: "coreos-stable",
@@ -82,15 +68,18 @@ func main() {
 			UserData: string(digitaloceanIgnitionJSON),
 		}
 
-		fmt.Printf("Droplet creation request: %v", createRequest)
+		//fmt.Printf("Droplet creation request: %v", createRequest)
 
 		newDroplet, _, err := client.Droplets.Create(createRequest)
 		if err != nil {
-			fmt.Printf("Something bad happened: %s\n\n", err)
+			fmt.Printf("\nUnexpected ERROR: %s\n\n", err)
+			// TODO: set exit code to !0 (so CircleCI reports failed build)
+			os.Exit(1)
 		} else {
 			ipv4, _ := newDroplet.PublicIPv4()
 			addr := doDropletInfoSite + strconv.Itoa(newDroplet.ID)
-			fmt.Printf("%s: %s CREATED @ %s\n", ipv4, newDroplet.Name, addr)
+			fmt.Printf("\n%s: %s CREATED @ %s\n", ipv4, newDroplet.Name, addr)
+			os.Exit(0)
 		}
 	}
 }

@@ -1,14 +1,15 @@
-machine:
-  services:
-    - docker
-
-dependencies:
-  override:
-    - go get -t -d -v ./...
-    - ./set_env.sh
-
-deployment:
-  live:
-    branch: master
-    commands:
-      - go run do.go
+version: 2
+executorType: docker
+containerInfo:
+  - image: golang:1.7
+stages:
+  build:
+    workDir: /go/src/github.com/danackerson/digitalocean
+    steps:
+      - type: checkout
+      - type: shell
+        command: |
+          set -eu
+          go get -t -d -v ./...
+          ./set_env.sh
+          go run do.go
