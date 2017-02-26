@@ -70,7 +70,7 @@ func main() {
 
 		//fmt.Printf("Droplet creation request: %v", createRequest)
 
-		newDroplet, _, err := client.Droplets.Create(createRequest)
+		newDroplet, _, err := client.Droplets.Create(oauth2.NoContext, createRequest)
 		if err != nil {
 			fmt.Printf("\nUnexpected ERROR: %s\n\n", err)
 			// TODO: set exit code to !0 (so CircleCI reports failed build)
@@ -92,7 +92,7 @@ func DropletList(client *godo.Client) ([]godo.Droplet, error) {
 	// create options. initially, these will be blank
 	opt := &godo.ListOptions{}
 	for {
-		droplets, resp, err := client.Droplets.List(opt)
+		droplets, resp, err := client.Droplets.List(oauth2.NoContext, opt)
 		if err != nil {
 			return nil, err
 		}
