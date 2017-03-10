@@ -19,10 +19,22 @@
     }]
   },
   "storage": {
-    "files": [{
-      "filesystem": "root",
-      "path": "/etc/ssh/sshd_config",
-      "contents": { "source": "data:text/plain;base64,{{encoded_sshd_config}}" }
-    }]
+    "files": [
+      {
+        "filesystem": "root",
+        "path": "/etc/ssh/sshd_config",
+        "contents": { "source": "data:text/plain;base64,{{encoded_sshd_config}}" }
+      },
+      {
+        "filesystem": "root",
+        "path": "/home/{{deploy_user}}/certs/",
+        "mode": 0600
+      },
+      {
+        "filesystem": "root",
+        "path": "/home/{{deploy_user}}/bb_games/",
+        "mode": 0644
+      }
+    ]
   }
 }
