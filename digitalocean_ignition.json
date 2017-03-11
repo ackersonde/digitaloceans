@@ -8,7 +8,12 @@
        },
        {
          "name": "bbgames.service",
-         "contents": "[Unit]\nDescription=Removes old ball games from /home/ackersond/bb_games/\n\n[Service]\nType=oneshot\nExecStart=/usr/bin/sh -c 'find /home/ackersond/bb_games/* -mtime +0 -exec rm {} \\;'"
+         "contents": "[Unit]\nDescription=Removes old ball games from /home/{{deploy_user}}/bb_games/\n\n[Service]\nType=oneshot\nExecStart=/usr/bin/sh -c 'find /home/{{deploy_user}}/bb_games/* -mtime +0 -exec rm {} \\;'"
+       },
+       {
+         "name": "bbgames.timer",
+         "enable": true,
+         "contents": "[Unit]\nDescription=Run bbgames.service every day\n\n[Timer]\nOnCalendar=daily\n\n[Install]\nWantedBy=multi-user.target"
        }
      ]
    },
