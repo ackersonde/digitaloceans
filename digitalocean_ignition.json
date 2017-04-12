@@ -8,7 +8,7 @@
        },
        {
          "name": "bbgames.service",
-         "contents": "[Unit]\nDescription=Removes old ball games from /home/{{deploy_user}}/bb_games/\n\n[Service]\nType=simple\nExecStart=/usr/bin/sh -c 'if [ -e /home/{{deploy_user}}/bb_games/* ];then find /home/{{deploy_user}}/bb_games/* -mtime +0 -delete;fi'"
+         "contents": "[Unit]\nDescription=Removes old ball games from /home/{{deploy_user}}/bb_games/\n\n[Service]\nType=simple\nExecStart=/usr/bin/sh -c 'if [[ -e /home/{{deploy_user}}/bb_games/ ]];then find /home/{{deploy_user}}/bb_games/* -mtime +0 -delete;fi'"
        },
        {
          "name": "bbgames.timer",
