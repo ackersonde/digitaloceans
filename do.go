@@ -109,7 +109,7 @@ func reassignFloatingIP(client *godo.Client, droplet *godo.Droplet) {
 	_, _, err := client.FloatingIPActions.Assign(oauth2.NoContext, floatingIPAddress, droplet.ID)
 	for err != nil {
 		fmt.Printf("WARN: %s\n", err.Error())
-		client.FloatingIPActions.Assign(oauth2.NoContext, floatingIPAddress, droplet.ID)
+		_, _, err = client.FloatingIPActions.Assign(oauth2.NoContext, floatingIPAddress, droplet.ID)
 	}
 }
 
