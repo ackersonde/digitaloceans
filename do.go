@@ -78,7 +78,7 @@ func main() {
 			Data: strings.ToLower(ipv6),
 		}
 		_, _, err := client.Domains.EditRecord(oauth2.NoContext, "ackerson.de", ackersonDERecordIDIPv6, editRequest)
-		if err != nil {
+		for err != nil {
 			fmt.Printf("FAIL domain update IPv6: %s\n", err)
 			_, _, err = client.Domains.EditRecord(oauth2.NoContext, "ackerson.de", ackersonDERecordIDIPv6, editRequest)
 		}
