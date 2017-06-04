@@ -38,6 +38,7 @@ jobs:
               if [ "${CIRCLE_BRANCH}" == "master" ]; then
                 go run do.go -fn=updateDNS -dropletID=$NEW_DROPLET_ID
                 source ~/.ssh_agent_conf
+                sleep 60
                 ssh -o "StrictHostKeyChecking no" $deployUser@$NEW_SERVER_IPV4 docker run -d --name letsencrypt --volumes-from ackerson.de quay.io/letsencrypt/letsencrypt certonly --non-interactive --text --agree-tos --webroot --no-eff-email --webroot-path /app/public -m dan@ackerson.de -d ackerson.de
                 ssh -o "StrictHostKeyChecking no" $deployUser@$NEW_SERVER_IPV4 sleep 30
                 ssh -o "StrictHostKeyChecking no" $deployUser@$NEW_SERVER_IPV4 docker cp letsencrypt:/etc/letsencrypt/ ./letsencrypt
