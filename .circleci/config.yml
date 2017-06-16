@@ -13,7 +13,6 @@ jobs:
             go get -t -d -v ./...
             ./set_env.sh
             go run do.go -fn=createNewServer
-
   ssh_keys:
     steps:
       - add-ssh-keys:
@@ -28,7 +27,6 @@ jobs:
             for _k in $(ls ${HOME}/.ssh/id_*); do
               ssh-add ${_k} || true
             done
-
   update_dns:
     steps:
       - run:
@@ -44,7 +42,6 @@ jobs:
             ssh -o "StrictHostKeyChecking no" $deployUser@$NEW_SERVER_IPV4 docker rm -f letsencrypt
             ssh -o "StrictHostKeyChecking no" $deployUser@$NEW_SERVER_IPV4 docker restart ackerson.de
           fi
-
   build_deploy_ackersonde:
     steps:
       - run:
@@ -53,7 +50,6 @@ jobs:
           curl --user ${CIRCLE_API_TOKEN}: \
             --data build_parameters[DEPLOY_SERVER_IP]=$NEW_SERVER_IPV4 \
             https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/ackerson.de-go/tree/master
-
   build_deploy_bender_slackbot:
     steps:
       - run:
@@ -62,7 +58,6 @@ jobs:
           curl --user ${CIRCLE_API_TOKEN}: \
             --data build_parameters[DEPLOY_SERVER_IP]=$NEW_SERVER_IPV4 \
             https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/bender-slackbot/tree/master
-
 workflows:
   version: 2
   build_accept_deploy:
