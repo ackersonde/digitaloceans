@@ -44,38 +44,3 @@ jobs:
               ssh -o "StrictHostKeyChecking no" $deployUser@$NEW_SERVER_IPV4 docker rm -f letsencrypt
               ssh -o "StrictHostKeyChecking no" $deployUser@$NEW_SERVER_IPV4 docker restart ackerson.de
             fi
-  build_deploy_ackersonde:
-    steps:
-      - run:
-          name: Build & deploy ackerson.de
-          command: |
-            source /tmp/new_digital_ocean_droplet_params
-            echo "ackersonDE: IPV4 of new server: $NEW_SERVER_IPV4"
-            curl --user ${CIRCLE_API_TOKEN}: \
-              --data build_parameters[DEPLOY_SERVER_IP]=$NEW_SERVER_IPV4 \
-              https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/ackerson.de-go/tree/master
-  build_deploy_bender_slackbot:
-    steps:
-      - run:
-          name: Build & deploy bender bot
-          command: |
-            source /tmp/new_digital_ocean_droplet_params
-            echo "benderBot: IPV4 of new server: $NEW_SERVER_IPV4"
-            curl --user ${CIRCLE_API_TOKEN}: \
-              --data build_parameters[DEPLOY_SERVER_IP]=$NEW_SERVER_IPV4 \
-              https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/bender-slackbot/tree/master
-workflows:
-  version: 2
-  build_accept_deploy:
-    jobs:
-      - build:
-      - build_deploy_ackersonde:
-          requires:
-            - build
-      - build_deploy_bender_slackbot:
-          requires:
-            - build
-      - update_dns:
-          requires:
-            - ssh_keys
-            - build_deploy_ackersonde
