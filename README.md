@@ -12,6 +12,6 @@ Following Environment variables need to be set in your [CircleCI project](https:
 Check clippers for details.
 
 # WARNING
-Every push to this repo will result in a new Droplet created at DigitalOcean => +$5 / month!
+Every push to this repo will result in a new Droplet created at DigitalOcean => $5 / month!
 
 Use git commit msg string snippet `[ci skip]` to avoid this!
