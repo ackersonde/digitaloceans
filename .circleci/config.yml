@@ -16,7 +16,7 @@ jobs:
             go get -t -d -v ./...
             go build -o /tmp/do do.go
             cp set_env.sh /tmp
-            sh /tmp/set_env.sh
+            /tmp/set_env.sh
             /tmp/do -fn=createNewServer
       - persist_to_workspace:
           root: /tmp
@@ -40,7 +40,7 @@ jobs:
           name: Update DNS entry & SSL cert for ackerson.de
           command: |
             if [ "${CIRCLE_BRANCH}" == "master" ]; then
-              sh /tmp/set_env.sh
+              /tmp/set_env.sh
               source /tmp/new_digital_ocean_droplet_params
               /tmp/do -fn=updateDNS -dropletID=$NEW_DROPLET_ID
               source ~/.ssh_agent_conf
