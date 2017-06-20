@@ -70,7 +70,7 @@ func main() {
 		fmt.Printf("new IPv6 addr: %s\n", ipv6)
 		ackersonDERecordIDIPv6 := 23738236
 		record, _, _ := client.Domains.Record(oauth2.NoContext, "ackerson.de", ackersonDERecordIDIPv6)
-		fmt.Printf("current IPv6 %s: %s => %s\n", record.Name, record.Type, record.Data)
+		fmt.Printf("current IPv6 %s: %s => %s", record.Name, record.Type, record.Data)
 
 		editRequest := &godo.DomainRecordEditRequest{
 			Type: record.Type,
@@ -123,7 +123,7 @@ func createDroplet(client *godo.Client) *godo.Droplet {
 	sshKeys := []godo.DropletCreateSSHKey{}
 	sshKeys = append(sshKeys, godo.DropletCreateSSHKey{Fingerprint: fingerprint})
 
-	digitaloceanIgnitionJSON, err := ioutil.ReadFile("/tmp/digitalocean_ignition.json")
+	digitaloceanIgnitionJSON, err := ioutil.ReadFile("digitalocean_ignition.json")
 	if err != nil {
 		fmt.Printf("Failed to read JSON file: %s", err)
 	} else {
