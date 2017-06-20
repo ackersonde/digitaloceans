@@ -19,6 +19,7 @@ jobs:
             cp digitalocean_ignition.json /tmp
             cp sshd_config /tmp
             /tmp/set_env.sh
+            env
             /tmp/do -fn=createNewServer
       - persist_to_workspace:
           root: /tmp
@@ -42,8 +43,9 @@ jobs:
           name: Update DNS entry & SSL cert for ackerson.de
           command: |
             if [ "${CIRCLE_BRANCH}" == "master" ]; then
-              /tmp/set_env.sh
               source /tmp/new_digital_ocean_droplet_params
+              /tmp/set_env.sh
+              env
               /tmp/do -fn=updateDNS -dropletID=$NEW_DROPLET_ID
               source ~/.ssh_agent_conf
               ssh -o "StrictHostKeyChecking no" $deployUser@$NEW_SERVER_IPV4 docker run -d --name letsencrypt --volumes-from ackerson.de quay.io/letsencrypt/letsencrypt certonly --non-interactive --text --agree-tos --webroot --no-eff-email --webroot-path /app/public -m dan@ackerson.de -d ackerson.de
