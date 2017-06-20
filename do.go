@@ -123,7 +123,7 @@ func createDroplet(client *godo.Client) *godo.Droplet {
 	sshKeys := []godo.DropletCreateSSHKey{}
 	sshKeys = append(sshKeys, godo.DropletCreateSSHKey{Fingerprint: fingerprint})
 
-	digitaloceanIgnitionJSON, err := ioutil.ReadFile("digitalocean_ignition.json")
+	digitaloceanIgnitionJSON, err := ioutil.ReadFile("/tmp/digitalocean_ignition.json")
 	if err != nil {
 		fmt.Printf("Failed to read JSON file: %s", err)
 	} else {
