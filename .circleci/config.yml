@@ -16,6 +16,7 @@ jobs:
             go get -t -d -v ./...
             go build -o /tmp/do do.go
             cp set_env.sh /tmp
+            cp digitalocean_ignition.json /tmp
             /tmp/set_env.sh
             /tmp/do -fn=createNewServer
       - persist_to_workspace:
