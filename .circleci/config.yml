@@ -84,8 +84,12 @@ workflows:
   build_accept_deploy:
     jobs:
       - build
-      - build_deploy_ackersonde
-      - build_deploy_bender_slackbot
+      - build_deploy_ackersonde:
+          requires:
+            - build
+      - build_deploy_bender_slackbot:
+          requires:
+            - build
       - update_dns:
           requires:
             - build_deploy_ackersonde
