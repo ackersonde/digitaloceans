@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: golang:1.8
+      - image: golang:1.9
     working_directory: /go/src/github.com/danackerson/digitalocean
     steps:
       - checkout
@@ -32,7 +32,7 @@ jobs:
               if [ "${CIRCLE_BRANCH}" == "master" ]; then
                 go run do.go -fn=updateDNS -dropletID=$NEW_DROPLET_ID
               fi
-              
+
               curl --user ${CIRCLE_API_TOKEN}: \
                 --data build_parameters[DEPLOY_SERVER_IP]=$NEW_SERVER_IPV4 \
                 https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/ackerson.de-go/tree/master
