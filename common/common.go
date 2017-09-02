@@ -5,13 +5,37 @@ import (
 	"log"
 	"net"
 	"os"
+	"strconv"
 
 	"github.com/digitalocean/godo"
 	"golang.org/x/oauth2"
 )
 
+// TokenSource is now commented
+type TokenSource struct {
+	AccessToken string
+}
+
+// Token is now commented
+func (t *TokenSource) Token() (*oauth2.Token, error) {
+	token := &oauth2.Token{
+		AccessToken: t.AccessToken,
+	}
+	return token, nil
+}
+
+// PrepareDigitalOceanLogin does what it says on the box
+func PrepareDigitalOceanLogin() *godo.Client {
+	doPersonalAccessToken := os.Getenv("digitalOceanToken")
+	tokenSource := &TokenSource{
+		AccessToken: doPersonalAccessToken,
+	}
+	oauthClient := oauth2.NewClient(oauth2.NoContext, tokenSource)
+	return godo.NewClient(oauthClient)
+}
+
 // UpdateFirewall to maintain connectivity while Telekom rotates IPs
-func UpdateFirewall(client *godo.Client) {
+func UpdateFirewall() {
 	firewallID := os.Getenv("doFirewallID")
 	floatingIPAddress := os.Getenv("doFloatingIP")
 
@@ -20,7 +44,7 @@ func UpdateFirewall(client *godo.Client) {
 	for _, ipAddr := range ipAddrs {
 		ipAddys = append(ipAddys, ipAddr.String())
 	}
-
+	client := PrepareDigitalOceanLogin()
 	ctx := context.TODO()
 
 	dropletID := 0
@@ -118,4 +142,20 @@ func DropletList(client *godo.Client) ([]godo.Droplet, error) {
 	}
 
 	return list, nil
+}
+
+// DeleteDODroplet more here https://developers.digitalocean.com/documentation/v2/#delete-a-droplet
+func DeleteDODroplet(ID int) string {
+	var result string
+
+	client := PrepareDigitalOceanLogin()
+
+	_, err := client.Droplets.Delete(oauth2.NoContext, ID)
+	if err == nil {
+		result = "Successfully deleted Droplet `" + strconv.Itoa(ID) + "`"
+	} else {
+		result = err.Error()
+	}
+
+	return result
 }

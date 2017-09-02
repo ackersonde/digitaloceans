@@ -14,32 +14,13 @@ import (
 	"golang.org/x/oauth2"
 )
 
-var firewallID = "44a25377-94a1-4125-8402-af9fc89382c9"
 var doDropletInfoSite = "https://cloud.digitalocean.com/droplets/"
-var floatingIPAddress = "138.68.115.62"
 var encodedDOSSHLoginPubKey = os.Getenv("encodedDOSSHLoginPubKey")
 var doPersonalAccessToken = os.Getenv("doPersonalAccessToken")
 var circleCIBuild = os.Getenv("CIRCLE_BUILD_NUM")
 
-// TokenSource is now commented
-type TokenSource struct {
-	AccessToken string
-}
-
-// Token is now commented
-func (t *TokenSource) Token() (*oauth2.Token, error) {
-	token := &oauth2.Token{
-		AccessToken: t.AccessToken,
-	}
-	return token, nil
-}
-
 func main() {
-	tokenSource := &TokenSource{
-		AccessToken: doPersonalAccessToken,
-	}
-	oauthClient := oauth2.NewClient(oauth2.NoContext, tokenSource)
-	client := godo.NewClient(oauthClient)
+	client := common.PrepareDigitalOceanLogin()
 
 	fnPtr := flag.String("fn", "updateDNS|createNewServer", "which function to run")
 	dropletIDPtr := flag.String("dropletID", "<digitalOceanDropletID>", "DO droplet to attach floatingIP to")
@@ -65,7 +46,7 @@ func main() {
 		fmt.Printf("\ngoing to work on DropletID: %d\n", droplet.ID)
 
 		reassignFloatingIP(client, droplet)
-		common.UpdateFirewall(client)
+		common.UpdateFirewall()
 
 		// update ipv6 DNS entry to new droplet
 		ipv6, _ := droplet.PublicIPv6()
@@ -107,6 +88,7 @@ func waitUntilDropletReady(client *godo.Client, dropletID int) {
 }
 
 func reassignFloatingIP(client *godo.Client, droplet *godo.Droplet) {
+	floatingIPAddress := os.Getenv("floatingIPAddress")
 	client.FloatingIPActions.Unassign(oauth2.NoContext, floatingIPAddress)
 
 	_, _, err := client.FloatingIPActions.Assign(oauth2.NoContext, floatingIPAddress, droplet.ID)
