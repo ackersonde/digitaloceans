@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/danackerson/digitalocean/doCommon"
+	"github.com/danackerson/digitalocean"
 	"github.com/digitalocean/godo"
 	"golang.org/x/oauth2"
 )
