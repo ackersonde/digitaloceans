@@ -13,6 +13,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
+var firewallID = "44a25377-94a1-4125-8402-af9fc89382c9"
 var doDropletInfoSite = "https://cloud.digitalocean.com/droplets/"
 var floatingIPAddress = "138.68.115.62"
 var encodedDOSSHLoginPubKey = os.Getenv("encodedDOSSHLoginPubKey")
@@ -63,7 +64,7 @@ func main() {
 		fmt.Printf("\ngoing to work on DropletID: %d\n", droplet.ID)
 
 		reassignFloatingIP(client, droplet)
-		droplet, _, _ = client.Droplets.Get(oauth2.NoContext, dropletID)
+		digitalocean.UpdateFirewall(firewallID)
 
 		// update ipv6 DNS entry to new droplet
 		ipv6, _ := droplet.PublicIPv6()
@@ -147,38 +148,4 @@ func createDroplet(client *godo.Client) *godo.Droplet {
 	}
 
 	return newDroplet
-}
-
-func dropletList(client *godo.Client) ([]godo.Droplet, error) {
-	// create a list to hold our droplets
-	list := []godo.Droplet{}
-
-	// create options. initially, these will be blank
-	opt := &godo.ListOptions{}
-	for {
-		droplets, resp, err := client.Droplets.List(oauth2.NoContext, opt)
-		if err != nil {
-			return nil, err
-		}
-
-		// append the current page's droplets to our list
-		for _, d := range droplets {
-			list = append(list, d)
-		}
-
-		// if we are at the last page, break out the for loop
-		if resp.Links == nil || resp.Links.IsLastPage() {
-			break
-		}
-
-		page, err := resp.Links.CurrentPage()
-		if err != nil {
-			return nil, err
-		}
-
-		// set the page we want for the next request
-		opt.Page = page + 1
-	}
-
-	return list, nil
 }
