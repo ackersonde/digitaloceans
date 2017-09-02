@@ -25,6 +25,10 @@ func (t *TokenSource) Token() (*oauth2.Token, error) {
 }
 
 var doPersonalAccessToken = os.Getenv("digitalOceanToken")
+var firewallID = os.Getenv("doFirewallID")
+
+// FloatingIPAddress is the static IP for ackerson.de
+var FloatingIPAddress = os.Getenv("doFloatingIP")
 
 // PrepareDigitalOceanLogin does what it says on the box
 func PrepareDigitalOceanLogin() *godo.Client {
@@ -37,9 +41,6 @@ func PrepareDigitalOceanLogin() *godo.Client {
 
 // UpdateFirewall to maintain connectivity while Telekom rotates IPs
 func UpdateFirewall() {
-	firewallID := os.Getenv("doFirewallID")
-	floatingIPAddress := os.Getenv("doFloatingIP")
-
 	ipAddys := []string{os.Getenv("officeIP")}
 	ipAddrs, _ := net.LookupIP(os.Getenv("homeDomain"))
 	for _, ipAddr := range ipAddrs {
@@ -49,7 +50,7 @@ func UpdateFirewall() {
 	ctx := context.TODO()
 
 	dropletID := 0
-	floatingIP, _, err := client.FloatingIPs.Get(ctx, floatingIPAddress)
+	floatingIP, _, err := client.FloatingIPs.Get(ctx, FloatingIPAddress)
 	if err == nil && floatingIP.Droplet != nil {
 		dropletID = floatingIP.Droplet.ID
 	}

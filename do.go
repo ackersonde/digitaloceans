@@ -87,13 +87,12 @@ func waitUntilDropletReady(client *godo.Client, dropletID int) {
 }
 
 func reassignFloatingIP(client *godo.Client, droplet *godo.Droplet) {
-	floatingIPAddress := os.Getenv("floatingIPAddress")
-	client.FloatingIPActions.Unassign(oauth2.NoContext, floatingIPAddress)
+	client.FloatingIPActions.Unassign(oauth2.NoContext, common.FloatingIPAddress)
 
-	_, _, err := client.FloatingIPActions.Assign(oauth2.NoContext, floatingIPAddress, droplet.ID)
+	_, _, err := client.FloatingIPActions.Assign(oauth2.NoContext, common.FloatingIPAddress, droplet.ID)
 	for err != nil {
 		fmt.Printf("WARN: %s\n", err.Error())
-		_, _, err = client.FloatingIPActions.Assign(oauth2.NoContext, floatingIPAddress, droplet.ID)
+		_, _, err = client.FloatingIPActions.Assign(oauth2.NoContext, common.FloatingIPAddress, droplet.ID)
 	}
 }
 
