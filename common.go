@@ -1,4 +1,4 @@
-package digitalocean
+package doCommon
 
 import (
 	"context"

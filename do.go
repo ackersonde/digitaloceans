@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/danackerson/digitalocean/digitalocean"
+	"github.com/danackerson/digitalocean/doCommon"
 	"github.com/digitalocean/godo"
 	"golang.org/x/oauth2"
 )
@@ -65,7 +65,7 @@ func main() {
 		fmt.Printf("\ngoing to work on DropletID: %d\n", droplet.ID)
 
 		reassignFloatingIP(client, droplet)
-		digitalocean.UpdateFirewall(firewallID)
+		doCommon.UpdateFirewall(firewallID)
 
 		// update ipv6 DNS entry to new droplet
 		ipv6, _ := droplet.PublicIPv6()
