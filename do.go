@@ -65,7 +65,7 @@ func main() {
 		fmt.Printf("\ngoing to work on DropletID: %d\n", droplet.ID)
 
 		reassignFloatingIP(client, droplet)
-		common.UpdateFirewall(client, firewallID, floatingIPAddress)
+		common.UpdateFirewall(client)
 
 		// update ipv6 DNS entry to new droplet
 		ipv6, _ := droplet.PublicIPv6()
