@@ -24,9 +24,10 @@ func (t *TokenSource) Token() (*oauth2.Token, error) {
 	return token, nil
 }
 
+var doPersonalAccessToken = os.Getenv("digitalOceanToken")
+
 // PrepareDigitalOceanLogin does what it says on the box
 func PrepareDigitalOceanLogin() *godo.Client {
-	doPersonalAccessToken := os.Getenv("digitalOceanToken")
 	tokenSource := &TokenSource{
 		AccessToken: doPersonalAccessToken,
 	}
