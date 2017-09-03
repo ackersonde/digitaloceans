@@ -50,11 +50,15 @@ func UpdateFirewall() {
 	client := PrepareDigitalOceanLogin()
 	ctx := context.TODO()
 
-	floatingIP, _, err := client.FloatingIPs.Get(ctx, FloatingIPAddress)
-	for err == nil || floatingIP.Droplet == nil {
+	floatingIP, _, err := client.FloatingIPs.Get(ctx, os.Getenv("doFloatingIP"))
+	for floatingIP.Droplet == nil {
+		if err != nil {
+			log.Println(err)
+		}
+
 		log.Println("floatIP not yet assigned...")
 		time.Sleep(5 * time.Second)
-		floatingIP, _, err = client.FloatingIPs.Get(ctx, FloatingIPAddress)
+		floatingIP, _, err = client.FloatingIPs.Get(ctx, os.Getenv("doFloatingIP"))
 	}
 	log.Println("update firewall for droplet: " + strconv.Itoa(floatingIP.Droplet.ID))
 
