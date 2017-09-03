@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/digitalocean/godo"
 	"golang.org/x/oauth2"
@@ -52,6 +53,7 @@ func UpdateFirewall() {
 	floatingIP, _, err := client.FloatingIPs.Get(ctx, FloatingIPAddress)
 	for err == nil || floatingIP.Droplet == nil {
 		log.Println("floatIP not yet assigned...")
+		time.Sleep(5 * time.Second)
 		floatingIP, _, err = client.FloatingIPs.Get(ctx, FloatingIPAddress)
 	}
 	log.Println("update firewall for droplet: " + strconv.Itoa(floatingIP.Droplet.ID))

@@ -61,6 +61,7 @@ func main() {
 		_, _, err := client.Domains.EditRecord(oauth2.NoContext, "ackerson.de", ackersonDERecordIDIPv6, editRequest)
 		for err != nil {
 			fmt.Printf("FAIL domain update IPv6: %s\n", err)
+			time.Sleep(5 * time.Second)
 			_, _, err = client.Domains.EditRecord(oauth2.NoContext, "ackerson.de", ackersonDERecordIDIPv6, editRequest)
 		}
 
@@ -93,6 +94,7 @@ func reassignFloatingIP(client *godo.Client, droplet *godo.Droplet) {
 	_, _, err := client.FloatingIPActions.Assign(oauth2.NoContext, common.FloatingIPAddress, droplet.ID)
 	for err != nil {
 		fmt.Printf("WARN: %s\n", err.Error())
+		time.Sleep(5 * time.Second)
 		_, _, err = client.FloatingIPActions.Assign(oauth2.NoContext, common.FloatingIPAddress, droplet.ID)
 	}
 }
