@@ -54,6 +54,8 @@ func UpdateFirewall() {
 	if err == nil && floatingIP.Droplet != nil {
 		dropletID = floatingIP.Droplet.ID
 	}
+	log.Println("update firewall for droplet: " + strconv.Itoa(dropletID))
+
 	updateRequest := &godo.FirewallRequest{
 		Name: "SSH-HTTP-regulation",
 		InboundRules: []godo.InboundRule{

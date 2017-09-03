@@ -45,7 +45,6 @@ func main() {
 		fmt.Printf("\ngoing to work on DropletID: %d\n", droplet.ID)
 
 		reassignFloatingIP(client, droplet)
-		common.UpdateFirewall()
 
 		// update ipv6 DNS entry to new droplet
 		ipv6, _ := droplet.PublicIPv6()
@@ -64,6 +63,8 @@ func main() {
 			fmt.Printf("FAIL domain update IPv6: %s\n", err)
 			_, _, err = client.Domains.EditRecord(oauth2.NoContext, "ackerson.de", ackersonDERecordIDIPv6, editRequest)
 		}
+
+		common.UpdateFirewall()
 	}
 }
 
