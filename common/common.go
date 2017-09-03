@@ -49,15 +49,12 @@ func UpdateFirewall() {
 	client := PrepareDigitalOceanLogin()
 	ctx := context.TODO()
 
-	dropletID := 0
 	floatingIP, _, err := client.FloatingIPs.Get(ctx, FloatingIPAddress)
-	if err == nil && floatingIP.Droplet != nil {
-		dropletID = floatingIP.Droplet.ID
-		log.Println("update firewall for droplet: " + strconv.Itoa(dropletID))
-	} else {
-		log.Println(err)
-		log.Println(floatingIP)
+	for err == nil || floatingIP.Droplet == nil {
+		log.Println("floatIP not yet assigned...")
+		floatingIP, _, err = client.FloatingIPs.Get(ctx, FloatingIPAddress)
 	}
+	log.Println("update firewall for droplet: " + strconv.Itoa(floatingIP.Droplet.ID))
 
 	updateRequest := &godo.FirewallRequest{
 		Name: "SSH-HTTP-regulation",
@@ -106,7 +103,7 @@ func UpdateFirewall() {
 				},
 			},
 		},
-		DropletIDs: []int{dropletID},
+		DropletIDs: []int{floatingIP.Droplet.ID},
 	}
 
 	firewallResp, _, err := client.Firewalls.Update(ctx, firewallID, updateRequest)
