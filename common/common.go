@@ -53,8 +53,11 @@ func UpdateFirewall() {
 	floatingIP, _, err := client.FloatingIPs.Get(ctx, FloatingIPAddress)
 	if err == nil && floatingIP.Droplet != nil {
 		dropletID = floatingIP.Droplet.ID
+		log.Println("update firewall for droplet: " + strconv.Itoa(dropletID))
+	} else {
+		log.Println(err)
+		log.Println(floatingIP)
 	}
-	log.Println("update firewall for droplet: " + strconv.Itoa(dropletID))
 
 	updateRequest := &godo.FirewallRequest{
 		Name: "SSH-HTTP-regulation",
