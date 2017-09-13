@@ -40,13 +40,24 @@ func PrepareDigitalOceanLogin() *godo.Client {
 	return godo.NewClient(oauthClient)
 }
 
-// UpdateFirewall to maintain connectivity while Telekom rotates IPs
-func UpdateFirewall() {
+func prepareSSHipAddresses() []string {
 	ipAddys := []string{os.Getenv("officeIP")}
 	ipAddrs, _ := net.LookupIP(os.Getenv("homeDomain"))
 	for _, ipAddr := range ipAddrs {
 		ipAddys = append(ipAddys, ipAddr.String())
 	}
+
+	// https://docs.hetrixtools.com/uptime-monitoring-nodes/ (NYC,LON,FRA)
+	hetrixToolsCheckers := []string{"52.207.41.187", "52.207.73.67", "52.23.120.125", "52.56.73.124", "139.162.228.62", "52.59.92.96", "78.46.88.58"}
+	ipAddys = append(ipAddys, hetrixToolsCheckers...)
+
+	return ipAddys
+}
+
+// UpdateFirewall to maintain connectivity while Telekom rotates IPs
+func UpdateFirewall() {
+	ipAddys := prepareSSHipAddresses()
+
 	client := PrepareDigitalOceanLogin()
 	ctx := context.TODO()
 
