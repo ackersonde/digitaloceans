@@ -97,6 +97,13 @@ func UpdateFirewall() {
 					Addresses: ipAddys,
 				},
 			},
+			{
+				Protocol:  "tcp",
+				PortRange: "8443",
+				Sources: &godo.Sources{
+					Addresses: ipAddys,
+				},
+			},
 		},
 		OutboundRules: []godo.OutboundRule{
 			{
