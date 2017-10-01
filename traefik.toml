@@ -1,0 +1,34 @@
+debug = false
+checkNewVersion = true
+logLevel = "DEBUG"
+defaultEntryPoints = ["http", "https", "ws", "wss"]
+
+[web]
+address = ":8443"
+readOnly = true
+  [web.auth.basic]
+  users = ["admin:$apr1$Sy/ApXHY$fVtWyeyllJ5KvbENX1mgd/"]
+
+[docker]
+  endpoint = "unix:///var/run/docker.sock"
+  domain = "ackerson.de"
+
+[entryPoints]
+  [entryPoints.http]
+  address = ":80"
+  compress = true
+    [entryPoints.http.redirect]
+    entryPoint = "https"
+  [entryPoints.https]
+  address = ":443"
+    [entryPoints.https.tls]
+    #  [[entryPoints.https.tls.certificates]]
+    #  certFile = "/certs/server.pem"
+    #  keyFile = "/certs/server.key"
+
+[acme]
+email = "dan@ackerson.de"
+storage = "acme.json"
+entryPoint = "https"
+dnsProvider = "digitalocean"
+OnHostRule = true
