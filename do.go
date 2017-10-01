@@ -39,6 +39,12 @@ func main() {
 		if err != nil {
 			fmt.Printf("Failed to write /tmp/new_digital_ocean_droplet_params: %s", err)
 		}
+
+		var firewallID = os.Getenv("doFirewallID")
+		_, err2 := client.Firewalls.AddDroplets(oauth2.NoContext, firewallID, droplet.ID)
+		if err2 != nil {
+			fmt.Printf("Failed to add droplet to Firewall: %s", err2)
+		}
 	} else {
 		dropletID, _ := strconv.Atoi(*dropletIDPtr)
 		droplet, _, _ := client.Droplets.Get(oauth2.NoContext, dropletID)
