@@ -21,14 +21,17 @@ readOnly = true
     entryPoint = "https"
   [entryPoints.https]
   address = ":443"
+    [entryPoints.https.redirect]
+       regex = "^https://www.ackerson.de/(.*)"
+       replacement = "https://ackerson.de/$1"
     [entryPoints.https.tls]
-    #  [[entryPoints.https.tls.certificates]]
-    #  certFile = "/certs/server.pem"
-    #  keyFile = "/certs/server.key"
 
 [acme]
 email = "dan@ackerson.de"
 storage = "acme.json"
 entryPoint = "https"
 dnsProvider = "digitalocean"
-OnHostRule = true
+
+[[acme.domains]]
+  main = "ackerson.de"
+  sans = ["www.ackerson.de", "battlefleet.ackerson.de"]
