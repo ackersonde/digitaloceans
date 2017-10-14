@@ -43,7 +43,8 @@ jobs:
 
               $DEPLOY_CONNECT docker network create web || true
               $DEPLOY_CONNECT docker rm -f traefik || true
-              $DEPLOY_CONNECT docker run -d -p 8443:8443 -p 80:80 -p 443:443 --network='web' \
+              $DEPLOY_CONNECT docker run -d --restart=always --network='web' \
+                -p 8443:8443 -p 80:80 -p 443:443 \
                 --label='traefik.frontend.rule=Host:monitor.ackerson.de' \
                 -e DO_AUTH_TOKEN=$digitalOceanToken \
                 -v $TRAEFIK_DIR/traefik.toml:/traefik.toml \

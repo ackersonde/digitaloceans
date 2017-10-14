@@ -1,6 +1,6 @@
 debug = false
 checkNewVersion = true
-logLevel = "DEBUG"
+logLevel = "INFO"
 defaultEntryPoints = ["http", "https", "ws", "wss"]
 
 [web]
