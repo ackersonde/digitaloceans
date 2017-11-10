@@ -22,8 +22,8 @@ readOnly = true
   [entryPoints.https]
   address = ":443"
     [entryPoints.https.redirect]
-       regex = "^https://www.ackerson.de/(.*)"
-       replacement = "https://ackerson.de/$1"
+       regex = "^https://www\.(.*)"
+       replacement = "https://$1"
     [entryPoints.https.tls]
 
 [acme]
@@ -35,3 +35,6 @@ dnsProvider = "digitalocean"
 [[acme.domains]]
   main = "ackerson.de"
   sans = ["www.ackerson.de", "battlefleet.ackerson.de"]
+[[acme.domains]]
+  main = "battlefleet.online"
+  sans = ["www.battlefleet.online", "battlefleet.online"]

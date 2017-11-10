@@ -44,12 +44,12 @@ jobs:
               $DEPLOY_CONNECT docker network create web || true
               $DEPLOY_CONNECT docker rm -f traefik || true
               $DEPLOY_CONNECT docker run -d --restart=always --network='web' \
-                -p 8443:8443 -p 80:80 -p 443:443 \
                 --label='traefik.frontend.rule=Host:monitor.ackerson.de' \
-                -e DO_AUTH_TOKEN=$digitalOceanToken \
+                -v /var/run/docker.sock:/var/run/docker.sock \
                 -v $TRAEFIK_DIR/traefik.toml:/traefik.toml \
                 -v $TRAEFIK_DIR/acme.json:/acme.json \
-                -v /var/run/docker.sock:/var/run/docker.sock \
+                -e DO_AUTH_TOKEN=$digitalOceanToken \
+                -p 8443:8443 -p 80:80 -p 443:443 \
                 --name traefik traefik:1.4
 
               curl --user ${CIRCLE_API_TOKEN}: \
