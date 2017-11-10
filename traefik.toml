@@ -22,7 +22,7 @@ readOnly = true
   [entryPoints.https]
   address = ":443"
     [entryPoints.https.redirect]
-       regex = "^https://www\.(.*)"
+       regex = "^https://www.(.*)"
        replacement = "https://$1"
     [entryPoints.https.tls]
 
