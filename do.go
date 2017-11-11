@@ -55,23 +55,27 @@ func main() {
 		// update ipv6 DNS entry to new droplet
 		ipv6, _ := droplet.PublicIPv6()
 		fmt.Printf("new IPv6 addr: %s\n", ipv6)
-		ackersonDERecordIDIPv6 := 23738236
-		record, _, _ := client.Domains.Record(oauth2.NoContext, "ackerson.de", ackersonDERecordIDIPv6)
-		fmt.Printf("current IPv6 %s: %s => %s", record.Name, record.Type, record.Data)
-
-		editRequest := &godo.DomainRecordEditRequest{
-			Type: record.Type,
-			Name: record.Name,
-			Data: strings.ToLower(ipv6),
-		}
-		_, _, err := client.Domains.EditRecord(oauth2.NoContext, "ackerson.de", ackersonDERecordIDIPv6, editRequest)
-		for err != nil {
-			fmt.Printf("FAIL domain update IPv6: %s\n", err)
-			time.Sleep(5 * time.Second)
-			_, _, err = client.Domains.EditRecord(oauth2.NoContext, "ackerson.de", ackersonDERecordIDIPv6, editRequest)
-		}
+		updateIPV6(client, ipv6, "ackerson.de", 23738236)
+		updateIPV6(client, ipv6, "battlefleet.online", 30208348)
 
 		common.UpdateFirewall()
+	}
+}
+
+func updateIPV6(client *godo.Client, ipv6 string, hostname string, domainID int) {
+	record, _, _ := client.Domains.Record(oauth2.NoContext, hostname, domainID)
+	fmt.Printf("current IPv6 %s: %s => %s", record.Name, record.Type, record.Data)
+
+	editRequest := &godo.DomainRecordEditRequest{
+		Type: record.Type,
+		Name: record.Name,
+		Data: strings.ToLower(ipv6),
+	}
+	_, _, err := client.Domains.EditRecord(oauth2.NoContext, hostname, domainID, editRequest)
+	for err != nil {
+		fmt.Printf("FAIL domain update IPv6: %s\n", err)
+		time.Sleep(5 * time.Second)
+		_, _, err = client.Domains.EditRecord(oauth2.NoContext, hostname, domainID, editRequest)
 	}
 }
 
