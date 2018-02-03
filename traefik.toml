@@ -8,17 +8,12 @@ defaultEntryPoints = ["http", "https", "ws", "wss"]
   domain = "ackerson.de"
 
 [entryPoints]
-  [entrypoints.api]
-    address=":8442"
-  [api]
-    entrypoint="api"
-    [api.statistics]
-
   [entryPoints.http]
   address = ":80"
   compress = true
     [entryPoints.http.redirect]
     entryPoint = "https"
+
   [entryPoints.https]
   address = ":443"
   compress = true
@@ -27,13 +22,19 @@ defaultEntryPoints = ["http", "https", "ws", "wss"]
     replacement = "https://$1"
     [entryPoints.https.tls]
 
-# These file entries setup the API server as backend &
-# the Monitoring Dashboard as frontend
+  # enable API backend & stats providing detailed metrics to dashboard
+  [entrypoints.api]
+  address=":8442"
+  [api]
+    entrypoint="api"
+    [api.statistics]
+
+# setup frontend route reverse proxied to API backend w/ basicAuth
 [file]
   [backends]
     [backends.api]
       [backends.api.servers.api]
-        url = "http://127.0.0.1:8442"
+      url = "http://127.0.0.1:8442"
 
   [frontends]
     [frontends.monitor]
