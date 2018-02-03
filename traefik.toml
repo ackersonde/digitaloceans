@@ -10,6 +10,7 @@ defaultEntryPoints = ["http", "https", "ws", "wss"]
 [entryPoints]
   [entrypoints.dashboard]
     address=":8443"
+  [entrypoints.dashboard.tls]
   [entrypoints.api]
     address=":8442"
   [api]
@@ -57,7 +58,7 @@ entryPoint = "https"
 
 [[acme.domains]]
   main = "ackerson.de"
-  sans = ["www.ackerson.de", "battlefleet.ackerson.de"]
+  sans = ["www.ackerson.de", "monitor.ackerson.de"]
 [[acme.domains]]
   main = "battlefleet.online"
-  sans = ["www.battlefleet.online", "battlefleet.online"]
+  sans = ["battlefleet.online"]
