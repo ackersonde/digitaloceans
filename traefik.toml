@@ -1,17 +1,13 @@
 debug = false
 checkNewVersion = true
 logLevel = "INFO"
-defaultEntryPoints = ["http", "https", "ws", "wss", "dashboard"]
+defaultEntryPoints = ["http", "https", "ws", "wss"]
 
 [docker]
   endpoint = "unix:///var/run/docker.sock"
   domain = "ackerson.de"
 
 [entryPoints]
-  [entrypoints.dashboard]
-    address=":443"
-    compress = true
-    [entrypoints.dashboard.tls]
   [entrypoints.api]
     address=":8442"
   [api]
@@ -41,7 +37,6 @@ defaultEntryPoints = ["http", "https", "ws", "wss", "dashboard"]
 
   [frontends]
     [frontends.monitor]
-      entrypoints = ["dashboard"]
       basicAuth = ["admin:$apr1$Sy/ApXHY$fVtWyeyllJ5KvbENX1mgd/"]
       backend = "api"
         [frontends.monitor.routes.monitor]
