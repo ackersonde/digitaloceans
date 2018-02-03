@@ -18,6 +18,11 @@ jobs:
               ssh-add ${_k} || true
             done
 
+      - run:
+          name: Disable Digital Ocean firewall for deploy
+          command: |
+            curl -s https://raw.githubusercontent.com/danackerson/digitalocean/master/utils/disableFW.sh | sh
+
       - deploy:
           name: Setup new server at Digital Ocean
           command: |
