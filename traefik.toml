@@ -1,7 +1,7 @@
 debug = false
 checkNewVersion = true
 logLevel = "INFO"
-defaultEntryPoints = ["http", "https", "ws", "wss"]
+defaultEntryPoints = ["http", "https", "ws", "wss", "dashboard"]
 
 [docker]
   endpoint = "unix:///var/run/docker.sock"
@@ -9,8 +9,9 @@ defaultEntryPoints = ["http", "https", "ws", "wss"]
 
 [entryPoints]
   [entrypoints.dashboard]
-    address=":8443"
-  [entrypoints.dashboard.tls]
+    address=":443"
+    compress = true
+    [entrypoints.dashboard.tls]
   [entrypoints.api]
     address=":8442"
   [api]
@@ -61,4 +62,3 @@ entryPoint = "https"
   sans = ["www.ackerson.de", "monitor.ackerson.de"]
 [[acme.domains]]
   main = "battlefleet.online"
-  sans = ["battlefleet.online"]
