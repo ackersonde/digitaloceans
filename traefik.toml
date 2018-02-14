@@ -1,7 +1,12 @@
 debug = false
-checkNewVersion = true
+checkNewVersion = false
 logLevel = "INFO"
 defaultEntryPoints = ["http", "https", "ws", "wss"]
+
+[traefikLog]
+  filePath = "/tmp/traefik.log"
+[accessLog]
+  filePath = "/tmp/access.log"
 
 [web]
 address = ":8443"
