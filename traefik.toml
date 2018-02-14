@@ -8,12 +8,6 @@ defaultEntryPoints = ["http", "https", "ws", "wss"]
 [accessLog]
   filePath = "/tmp/access.log"
 
-[web]
-address = ":8443"
-readOnly = true
-  [web.auth.basic]
-  users = ["admin:$apr1$Sy/ApXHY$fVtWyeyllJ5KvbENX1mgd/"]
-
 [docker]
   endpoint = "unix:///var/run/docker.sock"
   domain = "ackerson.de"
@@ -24,22 +18,48 @@ readOnly = true
   compress = true
     [entryPoints.http.redirect]
     entryPoint = "https"
+
   [entryPoints.https]
   address = ":443"
+  compress = true
     [entryPoints.https.redirect]
     regex = "^https://www.(.*)"
     replacement = "https://$1"
     [entryPoints.https.tls]
 
+  # enable API backend & stats providing detailed metrics to dashboard
+  [entrypoints.api]
+  address=":8442"
+  [api]
+    entrypoint="api"
+    [api.statistics]
+
+# setup frontend route reverse proxied to API backend w/ basicAuth
+[file]
+  [backends]
+    [backends.api]
+      [backends.api.servers.api]
+      url = "http://127.0.0.1:8442"
+
+  [frontends]
+    [frontends.monitor]
+      basicAuth = ["admin:$apr1$Sy/ApXHY$fVtWyeyllJ5KvbENX1mgd/"]
+      backend = "api"
+        [frontends.monitor.routes.monitor]
+        rule = "Host:monitor.ackerson.de"
+
 [acme]
 email = "dan@ackerson.de"
 storage = "acme.json"
 entryPoint = "https"
-dnsProvider = "digitalocean"
+[acme.httpChallenge]
+  entryPoint = "http"
+[acme.dnsChallenge]
+  provider = "digitalocean"
+  delayBeforeCheck = 0
 
 [[acme.domains]]
   main = "ackerson.de"
-  sans = ["www.ackerson.de", "battlefleet.ackerson.de"]
+  sans = ["www.ackerson.de", "monitor.ackerson.de"]
 [[acme.domains]]
   main = "battlefleet.online"
-  sans = ["www.battlefleet.online", "battlefleet.online"]
