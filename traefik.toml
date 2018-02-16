@@ -63,3 +63,4 @@ entryPoint = "https"
   sans = ["www.ackerson.de", "monitor.ackerson.de"]
 [[acme.domains]]
   main = "battlefleet.online"
+  sans = ["api.battlefleet.online", "www.battlefleet.online"]
