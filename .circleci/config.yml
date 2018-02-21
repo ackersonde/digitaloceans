@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: golang:1.9
+      - image: golang:1.10-alpine
     working_directory: /go/src/github.com/danackerson/digitalocean
     steps:
       - checkout
@@ -12,16 +12,12 @@ jobs:
       - run:
           name: Start ssh-agent
           command: |
+            apk add -U jq curl openssh-client git bash
             ssh-agent -s > ~/.ssh_agent_conf
             source ~/.ssh_agent_conf
             for _k in $(ls ${HOME}/.ssh/id_*); do
               ssh-add ${_k} || true
             done
-
-      - run:
-          name: Disable Digital Ocean firewall for deploy
-          command: |
-            curl -s https://raw.githubusercontent.com/danackerson/digitalocean/master/utils/disableFW.sh | sh
 
       - deploy:
           name: Setup new server at Digital Ocean
@@ -36,15 +32,15 @@ jobs:
                 go run do.go -fn=updateDNS -dropletID=$NEW_DROPLET_ID
               fi
 
-              apt-get update && apt-get -y install jq
               curl -fsS https://raw.githubusercontent.com/danackerson/digitalocean/master/utils/disableFW.sh | bash
 
-              export TRAEFIK_DIR=/home/ackersond/traefik
-              export DEPLOY_CONNECT="ssh -o StrictHostKeyChecking=no ackersond@$NEW_SERVER_IPV4"
+              export TRAEFIK_DIR="/home/$deployUser/traefik"
+              export DEPLOY_CONNECT="ssh -o StrictHostKeyChecking=no $deployUser@$NEW_SERVER_IPV4"
+
               $DEPLOY_CONNECT mkdir -p $TRAEFIK_DIR/logs
               $DEPLOY_CONNECT touch $TRAEFIK_DIR/acme.json
               $DEPLOY_CONNECT chmod 600 $TRAEFIK_DIR/acme.json
-              scp -o StrictHostKeyChecking=no $PWD/traefik.toml ackersond@$NEW_SERVER_IPV4:$TRAEFIK_DIR/
+              scp -o StrictHostKeyChecking=no $PWD/traefik.toml $deployUser@$NEW_SERVER_IPV4:$TRAEFIK_DIR/
 
               $DEPLOY_CONNECT docker network create web || true
               $DEPLOY_CONNECT docker rm -f traefik || true
