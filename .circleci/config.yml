@@ -51,7 +51,7 @@ jobs:
                 -v $TRAEFIK_DIR/logs:/tmp \
                 -v $TRAEFIK_DIR/acme.json:/acme.json \
                 -e DO_AUTH_TOKEN=$digitalOceanToken \
-                -p 8443:8443 -p 80:80 -p 443:443 \
+                -p 80:80 -p 443:443 \
                 --name traefik traefik:1.5
 
               curl --user ${CIRCLE_API_TOKEN}: \
