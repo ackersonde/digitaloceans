@@ -54,6 +54,12 @@ jobs:
                 -p 80:80 -p 443:443 \
                 --name traefik traefik:1.5
 
+              $DEPLOY_CONNECT docker run -d --name dd-agent \
+                -v /var/run/docker.sock:/var/run/docker.sock:ro \
+                -v /proc/:/host/proc/:ro \
+                -v /sys/fs/cgroup/:/host/sys/fs/cgroup:ro \
+                -e DD_API_KEY=$DataDog_API_KEY datadog/agent:latest
+
               curl --user ${CIRCLE_API_TOKEN}: \
                 --data build_parameters[DEPLOY_SERVER_IP]=$NEW_SERVER_IPV4 \
                 https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/ackerson.de-go/tree/master
