@@ -11,5 +11,5 @@ sed -i -e "s@{{deploy_user}}@$deployUser@" sshd_config
 base64 sshd_config > out
 export encodedSSHDConfig=$(tr -d '\n' < out)
 
-sed -i -e "s@{{deploy_user}}@$deployUser@" digitalocean_ignition.json
+sed -i -e "s@{{deploy_user}}@$deployUser@g" digitalocean_ignition.json
 sed -i -e "s@{{encoded_sshd_config}}@$encodedSSHDConfig@" digitalocean_ignition.json

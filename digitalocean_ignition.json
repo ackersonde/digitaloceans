@@ -23,6 +23,14 @@
         "filesystem": "root",
         "path": "/etc/ssh/sshd_config",
         "contents": { "source": "data:text/plain;base64,{{encoded_sshd_config}}" }
-    }]
+      },
+      {
+        "filesystem":"root",
+        "path":"/etc/logrotate.d/traefik",
+        "contents": {
+          "source": "data:,%2Fhome%2F{{deploy_user}}%2Ftraefik%2Flogs%2F*log%20%7B%20rotate%209%20size%20500M%20daily%20compress%20delaycompress%20sharedscripts%20postrotate%20%2Fusr%2Fbin%2Fdocker%20kill%20--signal%3D%22SIGUSR1%22%20traefik%20endscript%20%7D"
+        },
+        "mode":644
+      }]
   }
 }
