@@ -27,7 +27,7 @@
         "path":"/etc/logrotate.d/traefik",
         "mode": 644,
         "contents": {
-          "source": "data:,%2Fhome%2F{{deploy_user}}%2Ftraefik%2Flogs%2F*log%20%7B\n%20rotate%209\n%20size%20500M\n%20daily\n%20compress\n%20delaycompress\n%20sharedscripts\n%20postrotate\n\t%2Fusr%2Fbin%2Fdocker%20kill%20--signal%3D%22SIGUSR1%22%20traefik\n%20endscript\n%7D\n"
+          "source": "data:,%2Fhome%2F{{deploy_user}}%2Ftraefik%2Flogs%2F*log%20%7B%0A%20rotate%209%0A%20size%20500M%0A%20daily%0A%20compress%0A%20delaycompress%0A%20sharedscripts%0A%20postrotate%0A\t%2Fusr%2Fbin%2Fdocker%20kill%20--signal%3D%22SIGUSR1%22%20traefik%0A%20endscript%0A%7D%0A"
         }
       }]
   }
