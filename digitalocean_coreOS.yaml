@@ -1,5 +1,6 @@
 # use this yaml and the corresponding transpiler `ct` for adding ignition.json
 # install the `ct` transpiler via `brew install coreos-ct`
+# NOTE: the generated logrotate.d conf file will be invalid because of missing newlines!
 storage:
   files:
     - path: /etc/logrotate.d/traefik

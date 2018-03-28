@@ -5,8 +5,6 @@ defaultEntryPoints = ["http", "https", "ws", "wss"]
 
 [traefikLog]
   filePath = "/tmp/traefik.log"
-[accessLog]
-  filePath = "/tmp/access.log"
 
 [docker]
   endpoint = "unix:///var/run/docker.sock"

@@ -1,5 +1,5 @@
 {
-   "ignition": { "version": "2.0.0" },
+   "ignition": { "version": "2.2.0" },
    "systemd": {
      "units": [
        {
@@ -13,9 +13,7 @@
       "name": "{{deploy_user}}",
       "passwordHash": "{{console_passwd_hash}}",
       "sshAuthorizedKeys": [ "{{circleci_deploy_pubkey}}", "{{login_ssh_pubkey}}" ],
-      "create": {
-        "groups": ["sudo", "docker"]
-      }
+      "groups": ["sudo", "docker"]
     }]
   },
   "storage": {
@@ -27,10 +25,10 @@
       {
         "filesystem":"root",
         "path":"/etc/logrotate.d/traefik",
+        "mode": 644,
         "contents": {
-          "source": "data:,%2Fhome%2F{{deploy_user}}%2Ftraefik%2Flogs%2F*log%20%7B%20rotate%209%20size%20500M%20daily%20compress%20delaycompress%20sharedscripts%20postrotate%20%2Fusr%2Fbin%2Fdocker%20kill%20--signal%3D%22SIGUSR1%22%20traefik%20endscript%20%7D"
-        },
-        "mode":644
+          "source": "data:,%2Fhome%2F{{deploy_user}}%2Ftraefik%2Flogs%2F*log%20%7B\n%20rotate%209\n%20size%20500M\n%20daily\n%20compress\n%20delaycompress\n%20sharedscripts\n%20postrotate\n\t%2Fusr%2Fbin%2Fdocker%20kill%20--signal%3D%22SIGUSR1%22%20traefik\n%20endscript\n%7D\n"
+        }
       }]
   }
 }
