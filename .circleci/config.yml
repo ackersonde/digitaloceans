@@ -28,11 +28,11 @@ jobs:
             source /tmp/new_digital_ocean_droplet_params
 
             if [[ "$NEW_SERVER_IPV4" ]]; then
+              curl -fsS https://raw.githubusercontent.com/danackerson/digitalocean/master/utils/disableFW.sh | bash
+
               if [[ "${CIRCLE_BRANCH}" == "master" ]]; then
                 go run do.go -fn=updateDNS -dropletID=$NEW_DROPLET_ID
               fi
-
-              curl -fsS https://raw.githubusercontent.com/danackerson/digitalocean/master/utils/disableFW.sh | bash
 
               export TRAEFIK_DIR="/home/$deployUser/traefik"
               export DEPLOY_CONNECT="ssh -o StrictHostKeyChecking=no $deployUser@$NEW_SERVER_IPV4"
