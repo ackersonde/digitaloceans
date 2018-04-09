@@ -52,7 +52,7 @@ jobs:
                 -v $TRAEFIK_DIR/acme.json:/acme.json \
                 -e DO_AUTH_TOKEN=$digitalOceanToken \
                 -p 80:80 -p 443:443 \
-                --name traefik traefik:1.5
+                --name traefik traefik:1.6
 
               $DEPLOY_CONNECT docker run -d  --restart=always --name dd-agent \
                 -v /var/run/docker.sock:/var/run/docker.sock:ro \
