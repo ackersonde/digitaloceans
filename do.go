@@ -58,7 +58,7 @@ func main() {
 		updateIPV6(client, ipv6, "ackerson.de", 23738236)
 		updateIPV6(client, ipv6, "battlefleet.online", 30208348)
 
-		// common.UpdateFirewall()
+		common.UpdateFirewall()
 	}
 }
 
