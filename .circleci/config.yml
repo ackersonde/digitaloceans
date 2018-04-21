@@ -65,11 +65,11 @@ jobs:
                 https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/ackerson.de-go/tree/master
 
               curl --user ${CIRCLE_API_TOKEN}: \
-                --data build_parameters[DEPLOY_SERVER_IP]=$DEPLOY_SERVER_IP \
+                --data build_parameters[DEPLOY_SERVER_IP]=$NEW_SERVER_IPV4 \
                 https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/battlefleet/tree/master
 
               curl --user ${CIRCLE_API_TOKEN}: \
-                --data build_parameters[DEPLOY_SERVER_IP]=$DEPLOY_SERVER_IP \
+                --data build_parameters[DEPLOY_SERVER_IP]=$NEW_SERVER_IPV4 \
                 https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/bender-slackbot/tree/master
             fi
 
