@@ -22,6 +22,8 @@ jobs:
       - deploy:
           name: Setup new server at Digital Ocean
           command: |
+            curl -fsS https://raw.githubusercontent.com/danackerson/digitalocean/master/utils/disableFW.sh | bash
+
             go get -t -d -v ./...
             ./set_env.sh
             go run do.go -fn=createNewServer
@@ -34,8 +36,6 @@ jobs:
 
               export TRAEFIK_DIR="/home/$deployUser/traefik"
               export DEPLOY_CONNECT="ssh -o StrictHostKeyChecking=no $deployUser@$NEW_SERVER_IPV4"
-
-              curl -fsS https://raw.githubusercontent.com/danackerson/digitalocean/master/utils/disableFW.sh | bash
 
               $DEPLOY_CONNECT mkdir -p $TRAEFIK_DIR/logs
               $DEPLOY_CONNECT touch $TRAEFIK_DIR/acme.json
