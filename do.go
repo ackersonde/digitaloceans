@@ -56,7 +56,7 @@ func main() {
 		ipv6, _ := droplet.PublicIPv6()
 		fmt.Printf("new IPv6 addr: %s\n", ipv6)
 		updateIPV6(client, ipv6, "ackerson.de", 23738236)
-		updateIPV6(client, ipv6, "battlefleet.online", 30208348)
+		updateIPV6(client, ipv6, "battlefleet.eu", 55451096)
 
 		common.UpdateFirewall()
 	}
