@@ -54,6 +54,12 @@ jobs:
                 -p 80:80 -p 443:443 \
                 --name traefik traefik:1.7
 
+              $DEPLOY_CONNECT docker run -d --restart=always --name outyler-agent \
+              -v /var/run/docker.sock:/var/run/docker.sock:ro \
+              -v /proc:/host/proc:ro \
+              -v /sys/fs/cgroup:/host/sys/fs/cgroup:ro \
+              -e "AGENT_KEY=${OUTLYER_API_KEY}" outlyer/agent2:1.4.6
+
               $DEPLOY_CONNECT docker run -d  --restart=always --name dd-agent \
                 -v /var/run/docker.sock:/var/run/docker.sock:ro \
                 -v /proc/:/host/proc/:ro \
