@@ -93,6 +93,9 @@ func UpdateFirewall() {
 	ctx := context.TODO()
 
 	floatingIP, _, err := client.FloatingIPs.Get(ctx, os.Getenv("doFloatingIP"))
+	if err != nil {
+		log.Println(err)
+	}
 	for floatingIP.Droplet == nil {
 		if err != nil {
 			log.Println(err)
