@@ -40,11 +40,11 @@ func main() {
 			fmt.Printf("Failed to write /tmp/new_digital_ocean_droplet_params: %s", err)
 		}
 
-		/*var firewallID = os.Getenv("doFirewallID")
+		var firewallID = os.Getenv("doFirewallID")
 		_, err2 := client.Firewalls.AddDroplets(oauth2.NoContext, firewallID, droplet.ID)
 		if err2 != nil {
 			fmt.Printf("Failed to add droplet to Firewall: %s", err2)
-		}*/
+		}
 	} else {
 		dropletID, _ := strconv.Atoi(*dropletIDPtr)
 		droplet, _, _ := client.Droplets.Get(oauth2.NoContext, dropletID)
@@ -58,7 +58,7 @@ func main() {
 		updateIPV6(client, ipv6, "ackerson.de", 23738236)
 		updateIPV6(client, ipv6, "battlefleet.eu", 55451096)
 
-		// common.UpdateFirewall()
+		common.UpdateFirewall()
 	}
 }
 
@@ -118,21 +118,27 @@ func createDroplet(client *godo.Client) *godo.Droplet {
 	sshKeys := []godo.DropletCreateSSHKey{}
 	sshKeys = append(sshKeys, godo.DropletCreateSSHKey{Fingerprint: fingerprint})
 
-	createRequest := &godo.DropletCreateRequest{
-		Name:   dropletName,
-		Region: "fra1",
-		Size:   "s-1vcpu-1gb",
-		Image: godo.DropletCreateImage{
-			Slug: "coreos-stable",
-		},
-		IPv6:    true,
-		SSHKeys: sshKeys,
-	}
-
-	newDroplet, _, err := client.Droplets.Create(oauth2.NoContext, createRequest)
+	digitaloceanIgnitionJSON, err := ioutil.ReadFile("digitalocean_ignition.json")
 	if err != nil {
-		fmt.Printf("\nUnexpected ERROR: %s\n\n", err)
-		os.Exit(1)
+		fmt.Printf("Failed to read JSON file: %s", err)
+	} else {
+		createRequest := &godo.DropletCreateRequest{
+			Name:   dropletName,
+			Region: "fra1",
+			Size:   "s-1vcpu-1gb",
+			Image: godo.DropletCreateImage{
+				Slug: "coreos-stable",
+			},
+			IPv6:     true,
+			SSHKeys:  sshKeys,
+			UserData: string(digitaloceanIgnitionJSON),
+		}
+
+		newDroplet, _, err = client.Droplets.Create(oauth2.NoContext, createRequest)
+		if err != nil {
+			fmt.Printf("\nUnexpected ERROR: %s\n\n", err)
+			os.Exit(1)
+		}
 	}
 
 	return newDroplet

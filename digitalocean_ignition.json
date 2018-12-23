@@ -15,13 +15,5 @@
       "sshAuthorizedKeys": [ "{{circleci_deploy_pubkey}}", "{{login_ssh_pubkey}}" ],
       "groups": ["sudo", "docker"]
     }]
-  },
-  "storage": {
-    "files": [{
-        "filesystem": "root",
-        "path": "/etc/ssh/sshd_config",
-        "contents": { "source": "data:text/plain;base64,{{encoded_sshd_config}}" }
-      }
-    ]
   }
 }
