@@ -66,5 +66,5 @@ jobs:
       - run:
           name: Reenable Digital Ocean firewall
           command: |
-             curl -fsS https://raw.githubusercontent.com/danackerson/digitalocean/master/utils/reenableFW.sh | bash
+             #curl -fsS https://raw.githubusercontent.com/danackerson/digitalocean/master/utils/reenableFW.sh | bash
           when: always
