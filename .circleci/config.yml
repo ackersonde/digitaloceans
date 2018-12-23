@@ -28,7 +28,7 @@ jobs:
               fi
 
               export TRAEFIK_DIR="/home/$deployUser/traefik"
-              export DEPLOY_CONNECT="ssh $deployUser@$NEW_SERVER_IPV4"
+              export DEPLOY_CONNECT="ssh -o StrictHostKeyChecking=no $deployUser@$NEW_SERVER_IPV4"
 
               curl -fsS https://raw.githubusercontent.com/danackerson/digitalocean/master/utils/disableFW.sh | bash
 
