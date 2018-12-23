@@ -64,7 +64,7 @@ func main() {
 
 func updateIPV6(client *godo.Client, ipv6 string, hostname string, domainID int) {
 	record, _, _ := client.Domains.Record(oauth2.NoContext, hostname, domainID)
-	fmt.Printf("current IPv6 %s: %s => %s", record.Name, record.Type, record.Data)
+	fmt.Printf("current IPv6 %s: %s => %s\n", record.Name, record.Type, record.Data)
 
 	editRequest := &godo.DomainRecordEditRequest{
 		Type: record.Type,
