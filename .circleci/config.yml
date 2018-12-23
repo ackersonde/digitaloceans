@@ -32,7 +32,9 @@ jobs:
               echo $DEPLOY_CONNECT
               #curl -fsS https://raw.githubusercontent.com/danackerson/digitalocean/master/utils/disableFW.sh | bash
 
-              ssh-keyscan $NEW_SERVER_IPV4 >> ~/.ssh/known_hosts
+              ssh-keyscan $NEW_SERVER_IPV4 > ~/.ssh/known_hosts
+              cat ~/.ssh/known_hosts
+
               $DEPLOY_CONNECT mkdir -p $TRAEFIK_DIR/logs
               $DEPLOY_CONNECT touch $TRAEFIK_DIR/acme.json
               $DEPLOY_CONNECT chmod 600 $TRAEFIK_DIR/acme.json
