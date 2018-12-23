@@ -40,11 +40,11 @@ func main() {
 			fmt.Printf("Failed to write /tmp/new_digital_ocean_droplet_params: %s", err)
 		}
 
-		var firewallID = os.Getenv("doFirewallID")
+		/*var firewallID = os.Getenv("doFirewallID")
 		_, err2 := client.Firewalls.AddDroplets(oauth2.NoContext, firewallID, droplet.ID)
 		if err2 != nil {
 			fmt.Printf("Failed to add droplet to Firewall: %s", err2)
-		}
+		}*/
 	} else {
 		dropletID, _ := strconv.Atoi(*dropletIDPtr)
 		droplet, _, _ := client.Droplets.Get(oauth2.NoContext, dropletID)
@@ -58,7 +58,7 @@ func main() {
 		updateIPV6(client, ipv6, "ackerson.de", 23738236)
 		updateIPV6(client, ipv6, "battlefleet.eu", 55451096)
 
-		common.UpdateFirewall()
+		//common.UpdateFirewall()
 	}
 }
 
@@ -112,7 +112,8 @@ func reassignFloatingIP(client *godo.Client, droplet *godo.Droplet) {
 func createDroplet(client *godo.Client) *godo.Droplet {
 	var newDroplet *godo.Droplet
 
-	fingerprint := "e0:a3:4c:5a:5a:1b:9c:bb:b5:51:a7:7f:62:27:51:96"
+	//fingerprint := "e0:a3:4c:5a:5a:1b:9c:bb:b5:51:a7:7f:62:27:51:96"
+	fingerprint := "93:c4:61:21:a6:82:d8:6d:4f:73:11:79:37:23:83:07"
 	dropletName := "b" + circleCIBuild + ".ackerson.de"
 
 	sshKeys := []godo.DropletCreateSSHKey{}
