@@ -29,7 +29,7 @@ jobs:
 
               export TRAEFIK_DIR="/home/$deployUser/traefik"
               export DEPLOY_CONNECT="ssh $deployUser@$NEW_SERVER_IPV4"
-              #curl -fsS https://raw.githubusercontent.com/danackerson/digitalocean/master/utils/disableFW.sh | bash
+              curl -fsS https://raw.githubusercontent.com/danackerson/digitalocean/master/utils/disableFW.sh | bash
 
               ssh-keyscan $NEW_SERVER_IPV4 > ~/.ssh/known_hosts
               cat ~/.ssh/known_hosts
@@ -69,5 +69,5 @@ jobs:
       - run:
           name: Reenable Digital Ocean firewall
           command: |
-             #curl -fsS https://raw.githubusercontent.com/danackerson/digitalocean/master/utils/reenableFW.sh | bash
+             curl -fsS https://raw.githubusercontent.com/danackerson/digitalocean/master/utils/reenableFW.sh | bash
           when: always

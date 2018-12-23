@@ -50,9 +50,6 @@ func prepareSSHipAddresses() []string {
 		ipAddys = append(ipAddys, ipAddr.String())
 	}
 
-	// https://docs.hetrixtools.com/uptime-monitoring-nodes/ (NYC,LON,FRA)
-	//hetrixToolsCheckers := []string{"52.207.41.187", "51.140.35.64", "52.207.73.67", "52.23.120.125", "52.56.73.124", "139.162.228.62", "52.59.92.96", "78.46.88.58"}
-
 	// switch to UptimeRobot
 	uptimeRobotAddresses, err := urlToLines("https://uptimerobot.com/inc/files/ips/IPv4andIPv6.txt")
 	if err != nil {
