@@ -118,27 +118,21 @@ func createDroplet(client *godo.Client) *godo.Droplet {
 	sshKeys := []godo.DropletCreateSSHKey{}
 	sshKeys = append(sshKeys, godo.DropletCreateSSHKey{Fingerprint: fingerprint})
 
-	digitaloceanIgnitionJSON, err := ioutil.ReadFile("digitalocean_ignition.json")
-	if err != nil {
-		fmt.Printf("Failed to read JSON file: %s", err)
-	} else {
-		createRequest := &godo.DropletCreateRequest{
-			Name:   dropletName,
-			Region: "fra1",
-			Size:   "s-1vcpu-1gb",
-			Image: godo.DropletCreateImage{
-				Slug: "coreos-stable",
-			},
-			IPv6:     true,
-			SSHKeys:  sshKeys,
-			UserData: string(digitaloceanIgnitionJSON),
-		}
+	createRequest := &godo.DropletCreateRequest{
+		Name:   dropletName,
+		Region: "fra1",
+		Size:   "s-1vcpu-1gb",
+		Image: godo.DropletCreateImage{
+			Slug: "coreos-stable",
+		},
+		IPv6:    true,
+		SSHKeys: sshKeys,
+	}
 
-		newDroplet, _, err = client.Droplets.Create(oauth2.NoContext, createRequest)
-		if err != nil {
-			fmt.Printf("\nUnexpected ERROR: %s\n\n", err)
-			os.Exit(1)
-		}
+	newDroplet, _, err := client.Droplets.Create(oauth2.NoContext, createRequest)
+	if err != nil {
+		fmt.Printf("\nUnexpected ERROR: %s\n\n", err)
+		os.Exit(1)
 	}
 
 	return newDroplet
