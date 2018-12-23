@@ -34,7 +34,7 @@ jobs:
               ssh-keyscan $NEW_SERVER_IPV4 > ~/.ssh/known_hosts
               cat ~/.ssh/known_hosts
 
-              echo $DEPLOY_CONNECT
+              #echo $DEPLOY_CONNECT
 
               $DEPLOY_CONNECT mkdir -p $TRAEFIK_DIR/logs
               $DEPLOY_CONNECT touch $TRAEFIK_DIR/acme.json
