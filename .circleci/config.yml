@@ -29,11 +29,12 @@ jobs:
 
               export TRAEFIK_DIR="/home/$deployUser/traefik"
               export DEPLOY_CONNECT="ssh $deployUser@$NEW_SERVER_IPV4"
-              echo $DEPLOY_CONNECT
               #curl -fsS https://raw.githubusercontent.com/danackerson/digitalocean/master/utils/disableFW.sh | bash
 
               ssh-keyscan $NEW_SERVER_IPV4 > ~/.ssh/known_hosts
               cat ~/.ssh/known_hosts
+
+              echo $DEPLOY_CONNECT
 
               $DEPLOY_CONNECT mkdir -p $TRAEFIK_DIR/logs
               $DEPLOY_CONNECT touch $TRAEFIK_DIR/acme.json
