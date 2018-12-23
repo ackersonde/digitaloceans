@@ -10,14 +10,9 @@ jobs:
           fingerprints:
             - "93:c4:61:21:a6:82:d8:6d:4f:73:11:79:37:23:83:07"
       - run:
-          name: Start ssh-agent
+          name: Install OS dependencies
           command: |
             apk add -U jq curl openssh-client git bash
-            ssh-agent -s > ~/.ssh_agent_conf
-            source ~/.ssh_agent_conf
-            for _k in $(ls ${HOME}/.ssh/id_*); do
-              ssh-add ${_k} || true
-            done
 
       - deploy:
           name: Setup new server at Digital Ocean
@@ -33,14 +28,15 @@ jobs:
               fi
 
               export TRAEFIK_DIR="/home/$deployUser/traefik"
-              export DEPLOY_CONNECT="ssh -o StrictHostKeyChecking=no $deployUser@$NEW_SERVER_IPV4"
+              export DEPLOY_CONNECT="ssh $deployUser@$NEW_SERVER_IPV4"
 
               curl -fsS https://raw.githubusercontent.com/danackerson/digitalocean/master/utils/disableFW.sh | bash
 
+              ssh-keyscan $NEW_SERVER_IPV4 >> ~/.ssh/known_hosts
               $DEPLOY_CONNECT mkdir -p $TRAEFIK_DIR/logs
               $DEPLOY_CONNECT touch $TRAEFIK_DIR/acme.json
               $DEPLOY_CONNECT chmod 600 $TRAEFIK_DIR/acme.json
-              scp -o StrictHostKeyChecking=no $PWD/traefik.toml $deployUser@$NEW_SERVER_IPV4:$TRAEFIK_DIR/
+              scp $PWD/traefik.toml $deployUser@$NEW_SERVER_IPV4:$TRAEFIK_DIR/
 
               $DEPLOY_CONNECT docker network create web || true
               $DEPLOY_CONNECT docker rm -f traefik || true
@@ -53,12 +49,6 @@ jobs:
                 -e DO_AUTH_TOKEN=$digitalOceanToken \
                 -p 80:80 -p 443:443 \
                 --name traefik traefik:1.7
-
-              $DEPLOY_CONNECT docker run -d --restart=always --name outyler-agent \
-              -v /var/run/docker.sock:/var/run/docker.sock:ro \
-              -v /proc:/host/proc:ro \
-              -v /sys/fs/cgroup:/host/sys/fs/cgroup:ro \
-              -e "AGENT_KEY=${OUTLYER_API_KEY}" outlyer/agent2:1.4.6
 
               curl --user ${CIRCLE_API_TOKEN}: \
                 --data build_parameters[DEPLOY_SERVER_IP]=$NEW_SERVER_IPV4 --data build_parameters[CIRCLE_JOB]=deploy \
