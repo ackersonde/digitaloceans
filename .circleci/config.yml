@@ -28,18 +28,13 @@ jobs:
               fi
 
               export TRAEFIK_DIR="/home/$deployUser/traefik"
-              export DEPLOY_CONNECT="ssh $deployUser@$NEW_SERVER_IPV4"
-              curl -fsS https://raw.githubusercontent.com/danackerson/digitalocean/master/utils/disableFW.sh | bash
-
-              ssh-keyscan $NEW_SERVER_IPV4 > ~/.ssh/known_hosts
-              cat ~/.ssh/known_hosts
-
-              #echo $DEPLOY_CONNECT
+              export DEPLOY_CONNECT="ssh -o StrictHostKeyChecking=no $deployUser@$NEW_SERVER_IPV4"
+              #curl -fsS https://raw.githubusercontent.com/danackerson/digitalocean/master/utils/disableFW.sh | bash
 
               $DEPLOY_CONNECT mkdir -p $TRAEFIK_DIR/logs
               $DEPLOY_CONNECT touch $TRAEFIK_DIR/acme.json
               $DEPLOY_CONNECT chmod 600 $TRAEFIK_DIR/acme.json
-              scp $PWD/traefik.toml $deployUser@$NEW_SERVER_IPV4:$TRAEFIK_DIR/
+              scp -o StrictHostKeyChecking=no $PWD/traefik.toml $deployUser@$NEW_SERVER_IPV4:$TRAEFIK_DIR/
 
               $DEPLOY_CONNECT docker network create web || true
               $DEPLOY_CONNECT docker rm -f traefik || true
@@ -65,9 +60,3 @@ jobs:
                 --data build_parameters[DEPLOY_SERVER_IP]=$NEW_SERVER_IPV4 --data build_parameters[CIRCLE_JOB]=deploy \
                 https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/bender-slackbot/tree/master
             fi
-
-      - run:
-          name: Reenable Digital Ocean firewall
-          command: |
-             curl -fsS https://raw.githubusercontent.com/danackerson/digitalocean/master/utils/reenableFW.sh | bash
-          when: always
