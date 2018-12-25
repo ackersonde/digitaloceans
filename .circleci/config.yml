@@ -32,7 +32,6 @@ jobs:
 
               # add circleCI build server ip addy to DO FW
               public_ip_address=$(curl -s https://checkip.amazonaws.com)
-              echo "public_ip_address = $public_ip_address"
               curl -fsS https://raw.githubusercontent.com/danackerson/digitalocean/master/utils/addSSHipFW.sh | bash
 
               $DEPLOY_CONNECT mkdir -p $TRAEFIK_DIR/logs
