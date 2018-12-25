@@ -31,8 +31,11 @@ jobs:
               export DEPLOY_CONNECT="ssh -o StrictHostKeyChecking=no $deployUser@$NEW_SERVER_IPV4"
 
               # add circleCI build server ip addy to DO FW
-              public_ip_address=$(curl -s https://checkip.amazonaws.com)
               curl -fsS https://raw.githubusercontent.com/danackerson/digitalocean/master/utils/addSSHipFW.sh | sh
+
+              curl --user ${CIRCLE_API_TOKEN}: \
+                --data build_parameters[DEPLOY_SERVER_IP]=$NEW_SERVER_IPV4 --data build_parameters[CIRCLE_JOB]=deploy \
+                https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/ackerson.de-go/tree/master
 
               $DEPLOY_CONNECT mkdir -p $TRAEFIK_DIR/logs
               $DEPLOY_CONNECT touch $TRAEFIK_DIR/acme.json
@@ -52,11 +55,7 @@ jobs:
                 --name traefik traefik:1.7
 
               # add circleCI build server ip addy to DO FW
-              curl -fsS https://raw.githubusercontent.com/danackerson/digitalocean/master/utils/dropSSHipFW.sh | bash
-
-              curl --user ${CIRCLE_API_TOKEN}: \
-                --data build_parameters[DEPLOY_SERVER_IP]=$NEW_SERVER_IPV4 --data build_parameters[CIRCLE_JOB]=deploy \
-                https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/ackerson.de-go/tree/master
+              curl -fsS https://raw.githubusercontent.com/danackerson/digitalocean/master/utils/dropSSHipFW.sh | sh
 
               curl --user ${CIRCLE_API_TOKEN}: \
                 --data build_parameters[DEPLOY_SERVER_IP]=$NEW_SERVER_IPV4 --data build_parameters[CIRCLE_JOB]=deploy \
