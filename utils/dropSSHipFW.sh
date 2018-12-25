@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/bin/sh
+public_ip_address=$(curl -s https://checkip.amazonaws.com)
 json='{"inbound_rules":[{"protocol":"tcp","ports":"22","sources":{"addresses":["'"$public_ip_address"'"]}}]}'
 
 curl -X DELETE -H "Content-Type: application/json" -H "Authorization: Bearer $digitalOceanToken" \
