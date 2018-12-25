@@ -33,6 +33,7 @@ jobs:
               # add circleCI build server ip addy to DO FW
               curl -fsS https://raw.githubusercontent.com/danackerson/digitalocean/master/utils/addSSHipFW.sh | sh
 
+              $DEPLOY_CONNECT docker network create web || true
               curl --user ${CIRCLE_API_TOKEN}: \
                 --data build_parameters[DEPLOY_SERVER_IP]=$NEW_SERVER_IPV4 --data build_parameters[CIRCLE_JOB]=deploy \
                 https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/ackerson.de-go/tree/master
@@ -42,7 +43,6 @@ jobs:
               $DEPLOY_CONNECT chmod 600 $TRAEFIK_DIR/acme.json
               scp -o StrictHostKeyChecking=no $PWD/traefik.toml $deployUser@$NEW_SERVER_IPV4:$TRAEFIK_DIR/
 
-              $DEPLOY_CONNECT docker network create web || true
               $DEPLOY_CONNECT docker rm -f traefik || true
               $DEPLOY_CONNECT docker run -d --restart=always --network='web' \
                 --label='traefik.frontend.rule=Host:monitor.ackerson.de' \
