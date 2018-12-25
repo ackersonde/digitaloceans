@@ -29,6 +29,10 @@ jobs:
 
               export TRAEFIK_DIR="/home/$deployUser/traefik"
               export DEPLOY_CONNECT="ssh -o StrictHostKeyChecking=no $deployUser@$NEW_SERVER_IPV4"
+
+              # add circleCI build server ip addy to DO FW
+              public_ip_address=$(curl -s https://checkip.amazonaws.com)
+              go run do.go -fn=addSSHip -ipAddy=$public_ip_address
               #curl -fsS https://raw.githubusercontent.com/danackerson/digitalocean/master/utils/disableFW.sh | bash
 
               $DEPLOY_CONNECT mkdir -p $TRAEFIK_DIR/logs
@@ -47,6 +51,9 @@ jobs:
                 -e DO_AUTH_TOKEN=$digitalOceanToken \
                 -p 80:80 -p 443:443 \
                 --name traefik traefik:1.7
+
+              # add circleCI build server ip addy to DO FW
+              go run do.go -fn=dropSSHip -ipAddy=$public_ip_address
 
               curl --user ${CIRCLE_API_TOKEN}: \
                 --data build_parameters[DEPLOY_SERVER_IP]=$NEW_SERVER_IPV4 --data build_parameters[CIRCLE_JOB]=deploy \

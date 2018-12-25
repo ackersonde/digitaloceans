@@ -82,6 +82,35 @@ func linesFromReader(r io.Reader) ([]string, error) {
 	return lines, nil
 }
 
+// ToggleSSHipAddress adds/removes an IP address on the FW rule
+func ToggleSSHipAddress(add bool, ipAddress string, client *godo.Client) {
+	ctx := context.TODO()
+
+	ruleRequest := &godo.FirewallRulesRequest{
+		InboundRules: []godo.InboundRule{
+			{
+				Protocol:  "tcp",
+				PortRange: "22",
+				Sources: &godo.Sources{
+					Addresses: []string{ipAddress},
+				},
+			},
+		},
+	}
+
+	if add {
+		_, err := client.Firewalls.AddRules(ctx, firewallID, ruleRequest)
+		if err != nil {
+			log.Println(err)
+		}
+	} else {
+		_, err := client.Firewalls.RemoveRules(ctx, firewallID, ruleRequest)
+		if err != nil {
+			log.Println(err)
+		}
+	}
+}
+
 // UpdateFirewall to maintain connectivity while Telekom rotates IPs
 func UpdateFirewall() {
 	ipAddys := prepareSSHipAddresses()
