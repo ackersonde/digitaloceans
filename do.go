@@ -23,7 +23,6 @@ func main() {
 
 	fnPtr := flag.String("fn", "updateDNS|createNewServer", "which function to run")
 	dropletIDPtr := flag.String("dropletID", "<digitalOceanDropletID>", "DO droplet to attach floatingIP to")
-	ipAddressPtr := flag.String("ipAddy", "<ipAddy>", "IP Addy to whitelist SSH access")
 	flag.Parse()
 	if *fnPtr == "createNewServer" {
 		droplet := createDroplet(client)
@@ -46,10 +45,6 @@ func main() {
 		if err2 != nil {
 			fmt.Printf("Failed to add droplet to Firewall: %s", err2)
 		}
-	} else if *fnPtr == "addSSHip" {
-		common.ToggleSSHipAddress(true, *ipAddressPtr, client)
-	} else if *fnPtr == "dropSSHip" {
-		common.ToggleSSHipAddress(false, *ipAddressPtr, client)
 	} else {
 		dropletID, _ := strconv.Atoi(*dropletIDPtr)
 		droplet, _, _ := client.Droplets.Get(oauth2.NoContext, dropletID)

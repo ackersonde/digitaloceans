@@ -32,8 +32,7 @@ jobs:
 
               # add circleCI build server ip addy to DO FW
               public_ip_address=$(curl -s https://checkip.amazonaws.com)
-              go run do.go -fn=addSSHip -ipAddy=$public_ip_address
-              #curl -fsS https://raw.githubusercontent.com/danackerson/digitalocean/master/utils/disableFW.sh | bash
+              curl -fsS https://raw.githubusercontent.com/danackerson/digitalocean/master/utils/addSSHipFW.sh | bash
 
               $DEPLOY_CONNECT mkdir -p $TRAEFIK_DIR/logs
               $DEPLOY_CONNECT touch $TRAEFIK_DIR/acme.json
@@ -53,7 +52,7 @@ jobs:
                 --name traefik traefik:1.7
 
               # add circleCI build server ip addy to DO FW
-              go run do.go -fn=dropSSHip -ipAddy=$public_ip_address
+              curl -fsS https://raw.githubusercontent.com/danackerson/digitalocean/master/utils/dropSSHipFW.sh | bash
 
               curl --user ${CIRCLE_API_TOKEN}: \
                 --data build_parameters[DEPLOY_SERVER_IP]=$NEW_SERVER_IPV4 --data build_parameters[CIRCLE_JOB]=deploy \
