@@ -24,7 +24,7 @@ defaultEntryPoints = ["http", "https"]
     regex = "^https://www.(.*)"
     replacement = "https://$1"
     [entryPoints.https.forwardedHeaders]
-      trustedIPs = ["127.0.0.1/32"]
+      trustedIPs = ["127.1.1.1/32"]
     [entryPoints.https.tls]
 
   # enable API backend & stats providing detailed metrics to dashboard
@@ -56,7 +56,7 @@ entryPoint = "https"
   entryPoint = "http"
 [acme.dnsChallenge]
   provider = "digitalocean"
-  delayBeforeCheck = 0
+  delayBeforeCheck = 60
 
 [[acme.domains]]
   main = "ackerson.de"
