@@ -1,7 +1,7 @@
 debug = false
 checkNewVersion = false
 logLevel = "INFO"
-defaultEntryPoints = ["http", "https", "ws", "wss"]
+defaultEntryPoints = ["http", "https"]
 
 [traefikLog]
   filePath = "/tmp/traefik.log"
@@ -23,6 +23,8 @@ defaultEntryPoints = ["http", "https", "ws", "wss"]
     [entryPoints.https.redirect]
     regex = "^https://www.(.*)"
     replacement = "https://$1"
+    [entryPoints.https.forwardedHeaders]
+      trustedIPs = ["127.0.0.1/32"]
     [entryPoints.https.tls]
 
   # enable API backend & stats providing detailed metrics to dashboard
