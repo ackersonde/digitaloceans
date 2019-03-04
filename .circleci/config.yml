@@ -51,6 +51,8 @@ jobs:
                 -v $TRAEFIK_DIR/logs:/tmp \
                 -v $TRAEFIK_DIR/acme.json:/acme.json \
                 -e DO_AUTH_TOKEN=$digitalOceanToken \
+                -e SPACES_KEY=$SPACES_KEY \
+                -e SPACES_SECRET=$SPACES_SECRET \
                 -p 80:80 -p 443:443 \
                 --name traefik traefik:1.7
 

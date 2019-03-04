@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/digitalocean/godo"
+	minio "github.com/minio/minio-go"
 	"golang.org/x/oauth2"
 )
 
@@ -33,6 +34,22 @@ var firewallID = os.Getenv("doFirewallID")
 
 // FloatingIPAddress is the static IP for ackerson.de
 var FloatingIPAddress = os.Getenv("doFloatingIP")
+
+// AccessDigitalOceanSpaces returns an S3 client for DO Spaces work
+func AccessDigitalOceanSpaces() *minio.Client {
+	accessKey := os.Getenv("SPACES_KEY")
+	secKey := os.Getenv("SPACES_SECRET")
+	endpoint := "ams3.digitaloceanspaces.com"
+	ssl := true
+
+	// Initiate a client using DigitalOcean Spaces.
+	client, err := minio.New(endpoint, accessKey, secKey, ssl)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return client
+}
 
 // PrepareDigitalOceanLogin does what it says on the box
 func PrepareDigitalOceanLogin() *godo.Client {
