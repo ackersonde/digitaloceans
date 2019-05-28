@@ -265,11 +265,19 @@ func DeleteDODroplet(ID int) string {
 // CopyFileToDOSpaces is a helper func for copying files to DigitalOcean Spaces
 // Helpful ideas: https://github.com/minio/minio-go/tree/master/examples/s3
 func CopyFileToDOSpaces(spacesName string, remoteFile string, url string, filesize int64) (err error) {
+	var reader io.Reader
+
 	resp, err := http.Get(url)
 	if err != nil {
-		return err
+		if strings.Contains(err.Error(), "unsupported protocol scheme \"\"") {
+			reader, err = os.Open(url)
+			if err != nil {
+				log.Printf("can't find local file %s: %s", url, err.Error())
+			}
+		}
+	} else {
+		reader = bufio.NewReader(resp.Body)
 	}
-	reader := bufio.NewReader(resp.Body)
 
 	remoteFile = strings.TrimPrefix(remoteFile, "/")
 	mimeType := mime.TypeByExtension(filepath.Ext(remoteFile))
