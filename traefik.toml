@@ -51,6 +51,7 @@ defaultEntryPoints = ["http", "https"]
 [acme]
 email = "dan@ackerson.de"
 storage = "acme.json"
+entrypoint = "https"
 [acme.dnsChallenge]
   provider = "digitalocean"
 [[acme.domains]]
