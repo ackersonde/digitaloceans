@@ -15,7 +15,7 @@ import (
 )
 
 var doDropletInfoSite = "https://cloud.digitalocean.com/droplets/"
-var encodedDOSSHLoginPubKey = os.Getenv("encodedDOSSHLoginPubKey")
+var digitalOceanSSHLoginPubKey = os.Getenv("digitalOceanSSHLoginPubKey")
 var circleCIBuild = os.Getenv("CIRCLE_BUILD_NUM")
 
 func main() {

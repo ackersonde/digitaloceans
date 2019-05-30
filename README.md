@@ -6,9 +6,9 @@ Using the golang api from [godo](https://www.digitalocean.com/community/projects
 Following Environment variables need to be set in your [CircleCI project](https://circleci.com/gh/danackerson/digitalocean/edit#env-vars):
 * deployUser
 * doPersonalAccessToken
-* encodedCircleCIDeployPubKey
+* circleCIDeployPubKey
 * encodedConsolePasswdHash
-* encodedDOSSHLoginPubKey
+* digitalOceanSSHLoginPubKey
 Check clippers for details.
 
 # WARNING
