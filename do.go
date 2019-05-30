@@ -112,8 +112,7 @@ func reassignFloatingIP(client *godo.Client, droplet *godo.Droplet) {
 func createDroplet(client *godo.Client) *godo.Droplet {
 	var newDroplet *godo.Droplet
 
-	//fingerprint := "e0:a3:4c:5a:5a:1b:9c:bb:b5:51:a7:7f:62:27:51:96"
-	fingerprint := "93:c4:61:21:a6:82:d8:6d:4f:73:11:79:37:23:83:07"
+	fingerprint := "78:d5:91:79:75:a6:94:22:40:4e:67:3d:7a:cd:ca:43"
 	dropletName := "b" + circleCIBuild + ".ackerson.de"
 
 	sshKeys := []godo.DropletCreateSSHKey{}
