@@ -49,7 +49,7 @@ defaultEntryPoints = ["http", "https"]
         rule = "Host:monitor.ackerson.de"
 
 [acme]
-email = "dan@ackerson.de"
+email = "dan+ssl@ackerson.de"
 storage = "acme.json"
 entrypoint = "https"
 [acme.dnsChallenge]
@@ -59,4 +59,3 @@ entrypoint = "https"
   sans = ["www.ackerson.de", "monitor.ackerson.de"]
 [[acme.domains]]
   main = "battlefleet.eu"
-  sans = ["api.battlefleet.eu", "www.battlefleet.eu"]
