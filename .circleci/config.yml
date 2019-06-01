@@ -41,6 +41,7 @@ jobs:
           at: /tmp
       - run:
           name: Deploy homepage & Traefik Proxy server
+          command: |
               source /tmp/new_digital_ocean_droplet_params
 
               export TRAEFIK_DIR="/home/$deployUser/traefik"
