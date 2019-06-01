@@ -1,5 +1,14 @@
 {
    "ignition": { "version": "2.2.0" },
+   "systemd": {
+     "units": [
+       {
+         "name": "docker.socket",
+         "command": "start",
+         "enable": true
+       }
+     ]
+   },
    "passwd": {
     "users": [{
       "name": "{{deploy_user}}",
