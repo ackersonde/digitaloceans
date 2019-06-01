@@ -25,6 +25,7 @@ jobs:
           root: /tmp
           paths:
             - new_digital_ocean_droplet_params
+            - traefik.toml
 
   deploy:
     docker:
@@ -60,7 +61,7 @@ jobs:
               $DEPLOY_CONNECT mkdir -p $TRAEFIK_DIR/logs
               $DEPLOY_CONNECT touch $TRAEFIK_DIR/acme.json
               $DEPLOY_CONNECT chmod 600 $TRAEFIK_DIR/acme.json
-              scp -o StrictHostKeyChecking=no $PWD/traefik.toml $deployUser@$NEW_SERVER_IPV4:$TRAEFIK_DIR/
+              scp -o StrictHostKeyChecking=no /tmp/traefik.toml $deployUser@$NEW_SERVER_IPV4:$TRAEFIK_DIR/
 
               $DEPLOY_CONNECT docker rm -f traefik || true
               $DEPLOY_CONNECT docker run -d --restart=always --network='web' \
@@ -76,12 +77,6 @@ jobs:
           command: |
             curl -s https://raw.githubusercontent.com/danackerson/digitalocean/master/utils/dropSSHipFW.sh | sh
           when: always
-      - run:
-          name: Install OS dependencies
-          command: |
-            apk add -U curl
-      - attach_workspace:
-          at: /tmp
       - run:
           name: Deploy bender slackbot & Battlefleet
           command: |
