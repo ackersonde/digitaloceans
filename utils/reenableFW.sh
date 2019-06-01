@@ -10,7 +10,7 @@ if [ -f doFirewall.json ]; then
   echo "}" >> reenableFW.json
 
   # Apply reenabledFW rules
-  curl -X PUT -H "Content-Type: application/json" -d @reenableFW.json -H "Authorization: Bearer $digitalOceanToken" "https://api.digitalocean.com/v2/firewalls/$doFirewallID"
+  curl -X PUT -H "Content-Type: application/json" -d @reenableFW.json -H "Authorization: Bearer $CTX_DIGITALOCEAN_TOKEN" "https://api.digitalocean.com/v2/firewalls/$CTX_DIGITALOCEAN_FIREWALL"
 else
   echo 'doFirewall.json not found -> exiting...'
 fi

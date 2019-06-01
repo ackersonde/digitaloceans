@@ -40,7 +40,7 @@ func main() {
 			fmt.Printf("Failed to write /tmp/new_digital_ocean_droplet_params: %s", err)
 		}
 
-		var firewallID = os.Getenv("doFirewallID")
+		var firewallID = os.Getenv("CTX_DIGITALOCEAN_FIREWALL")
 		_, err2 := client.Firewalls.AddDroplets(oauth2.NoContext, firewallID, droplet.ID)
 		if err2 != nil {
 			fmt.Printf("Failed to add droplet to Firewall: %s", err2)
@@ -112,7 +112,7 @@ func reassignFloatingIP(client *godo.Client, droplet *godo.Droplet) {
 func createDroplet(client *godo.Client) *godo.Droplet {
 	var newDroplet *godo.Droplet
 
-	fingerprint := "78:d5:91:79:75:a6:94:22:40:4e:67:3d:7a:cd:ca:43"
+	fingerprint := os.Getenv("CTX_SSH_DEPLOY_FINGERPRINT")
 	dropletName := "b" + circleCIBuild + ".ackerson.de"
 
 	sshKeys := []godo.DropletCreateSSHKey{}
