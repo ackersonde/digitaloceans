@@ -42,30 +42,30 @@ jobs:
       - run:
           name: Deploy homepage & Traefik Proxy server
           command: |
-              source /tmp/new_digital_ocean_droplet_params
+            source /tmp/new_digital_ocean_droplet_params
 
-              export TRAEFIK_DIR="/home/$deployUser/traefik"
-              export DEPLOY_CONNECT="ssh -o StrictHostKeyChecking=no $deployUser@$NEW_SERVER_IPV4"
+            export TRAEFIK_DIR="/home/$deployUser/traefik"
+            export DEPLOY_CONNECT="ssh -o StrictHostKeyChecking=no $deployUser@$NEW_SERVER_IPV4"
 
-              $DEPLOY_CONNECT docker network create web || true
-              curl --user ${CTX_CIRCLECI_API_TOKEN}: \
-                --data build_parameters[DEPLOY_SERVER_IP]=$NEW_SERVER_IPV4 --data build_parameters[CIRCLE_JOB]=deploy \
-                https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/ackerson.de-go/tree/master
+            $DEPLOY_CONNECT docker network create web || true
+            curl --user ${CTX_CIRCLECI_API_TOKEN}: \
+              --data build_parameters[DEPLOY_SERVER_IP]=$NEW_SERVER_IPV4 --data build_parameters[CIRCLE_JOB]=deploy \
+              https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/ackerson.de-go/tree/master
 
-              $DEPLOY_CONNECT mkdir -p $TRAEFIK_DIR/logs
-              $DEPLOY_CONNECT touch $TRAEFIK_DIR/acme.json
-              $DEPLOY_CONNECT chmod 600 $TRAEFIK_DIR/acme.json
-              scp -o StrictHostKeyChecking=no $PWD/traefik.toml $deployUser@$NEW_SERVER_IPV4:$TRAEFIK_DIR/
+            $DEPLOY_CONNECT mkdir -p $TRAEFIK_DIR/logs
+            $DEPLOY_CONNECT touch $TRAEFIK_DIR/acme.json
+            $DEPLOY_CONNECT chmod 600 $TRAEFIK_DIR/acme.json
+            scp -o StrictHostKeyChecking=no $PWD/traefik.toml $deployUser@$NEW_SERVER_IPV4:$TRAEFIK_DIR/
 
-              $DEPLOY_CONNECT docker rm -f traefik || true
-              $DEPLOY_CONNECT docker run -d --restart=always --network='web' \
-                --label='traefik.frontend.rule=Host:monitor.ackerson.de' \
-                -v /var/run/docker.sock:/var/run/docker.sock \
-                -v $TRAEFIK_DIR/traefik.toml:/traefik.toml \
-                -v $TRAEFIK_DIR/logs:/tmp \
-                -v $TRAEFIK_DIR/acme.json:/acme.json \
-                -p 80:80 -p 443:443 \
-                --name traefik traefik:1.7
+            $DEPLOY_CONNECT docker rm -f traefik || true
+            $DEPLOY_CONNECT docker run -d --restart=always --network='web' \
+              --label='traefik.frontend.rule=Host:monitor.ackerson.de' \
+              -v /var/run/docker.sock:/var/run/docker.sock \
+              -v $TRAEFIK_DIR/traefik.toml:/traefik.toml \
+              -v $TRAEFIK_DIR/logs:/tmp \
+              -v $TRAEFIK_DIR/acme.json:/acme.json \
+              -p 80:80 -p 443:443 \
+              --name traefik traefik:1.7
 
       - run:
           name: Remove CircleCI build server IP from DO FW
@@ -86,26 +86,26 @@ jobs:
       - run:
           name: Deploy bender slackbot & Battlefleet
           command: |
-              source /tmp/new_digital_ocean_droplet_params
-              curl --user ${CTX_CIRCLECI_API_TOKEN}: \
-                --data build_parameters[DEPLOY_SERVER_IP]=$NEW_SERVER_IPV4 --data build_parameters[CIRCLE_JOB]=deploy \
-                https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/battlefleet/tree/master
+            source /tmp/new_digital_ocean_droplet_params
+            curl --user ${CTX_CIRCLECI_API_TOKEN}: \
+              --data build_parameters[DEPLOY_SERVER_IP]=$NEW_SERVER_IPV4 --data build_parameters[CIRCLE_JOB]=deploy \
+              https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/battlefleet/tree/master
 
-              curl --user ${CTX_CIRCLECI_API_TOKEN}: \
-                --data build_parameters[DEPLOY_SERVER_IP]=$NEW_SERVER_IPV4 --data build_parameters[CIRCLE_JOB]=deploy \
-                https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/bender-slackbot/tree/master
+            curl --user ${CTX_CIRCLECI_API_TOKEN}: \
+              --data build_parameters[DEPLOY_SERVER_IP]=$NEW_SERVER_IPV4 --data build_parameters[CIRCLE_JOB]=deploy \
+              https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/bender-slackbot/tree/master
 
 workflows:
   version: 2
   build-deploy-propagate:
     jobs:
-        - build:
-            context: org-global
-        - deploy:
-            context: org-global
-            requires:
-              - build
-        - propagate:
-            context: org-global
-            requires:
-              - deploy
+      - build:
+          context: org-global
+      - deploy:
+          context: org-global
+          requires:
+            - build
+      - propagate:
+          context: org-global
+          requires:
+            - deploy
