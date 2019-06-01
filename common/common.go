@@ -33,16 +33,16 @@ func (t *TokenSource) Token() (*oauth2.Token, error) {
 	return token, nil
 }
 
-var doPersonalAccessToken = os.Getenv("digitalOceanToken")
-var firewallID = os.Getenv("doFirewallID")
+var doPersonalAccessToken = os.Getenv("CTX_DIGITALOCEAN_TOKEN")
+var firewallID = os.Getenv("CTX_DIGITALOCEAN_FIREWALL")
 
 // FloatingIPAddress is the static IP for ackerson.de
 var FloatingIPAddress = os.Getenv("doFloatingIP")
 
 // AccessDigitalOceanSpaces returns an S3 client for DO Spaces work
 func AccessDigitalOceanSpaces() *minio.Client {
-	accessKey := os.Getenv("SPACES_KEY")
-	secKey := os.Getenv("SPACES_SECRET")
+	accessKey := os.Getenv("CTX_SPACES_KEY")
+	secKey := os.Getenv("CTX_SPACES_SECRET")
 	endpoint := "ams3.digitaloceanspaces.com"
 	ssl := true
 
@@ -65,13 +65,13 @@ func PrepareDigitalOceanLogin() *godo.Client {
 }
 
 func prepareSSHipAddresses() []string {
-	ipAddys := []string{os.Getenv("officeIP")}
+	ipAddys := []string{}
 	ipAddrs, _ := net.LookupIP(os.Getenv("homeDomain"))
 	for _, ipAddr := range ipAddrs {
 		ipAddys = append(ipAddys, ipAddr.String())
 	}
 
-	// switch to UptimeRobot
+	// whitelist UptimeRobot addys
 	uptimeRobotAddresses, err := urlToLines("https://uptimerobot.com/inc/files/ips/IPv4andIPv6.txt")
 	if err != nil {
 		log.Println(err.Error())
