@@ -16,11 +16,13 @@ jobs:
             go get -t -d -v ./...
             sh ./set_env.sh
             go run do.go -fn=createNewServer
-            source /tmp/new_digital_ocean_droplet_params
 
+            source /tmp/new_digital_ocean_droplet_params
             if [[ "${CIRCLE_BRANCH}" == "master" ]]; then
               go run do.go -fn=updateDNS -dropletID=$NEW_DROPLET_ID
             fi
+
+            cp traefik.toml /tmp/
       - persist_to_workspace:
           root: /tmp
           paths:
