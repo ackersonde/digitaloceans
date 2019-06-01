@@ -14,7 +14,7 @@ jobs:
           name: Setup new server at Digital Ocean
           command: |
             go get -t -d -v ./...
-            ./set_env.sh
+            sh ./set_env.sh
             go run do.go -fn=createNewServer
             source /tmp/new_digital_ocean_droplet_params
 
