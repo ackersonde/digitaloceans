@@ -29,6 +29,7 @@ jobs:
   deploy:
     docker:
       - image: alpine
+    working_directory: /go/src/github.com/danackerson/digitalocean
     steps:
       - add-ssh-keys:
           fingerprints:
@@ -75,11 +76,6 @@ jobs:
           command: |
             curl -s https://raw.githubusercontent.com/danackerson/digitalocean/master/utils/dropSSHipFW.sh | sh
           when: always
-
-  propagate:
-    docker:
-      - image: alpine
-    steps:
       - run:
           name: Install OS dependencies
           command: |
@@ -108,7 +104,3 @@ workflows:
           context: org-global
           requires:
             - build
-      - propagate:
-          context: org-global
-          requires:
-            - deploy
