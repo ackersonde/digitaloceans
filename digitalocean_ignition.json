@@ -3,7 +3,8 @@
    "systemd": {
      "units": [
        {
-         "name": "docker.service",
+         "name": "docker.socket",
+         "command": "start",
          "enable": true
        }
      ]

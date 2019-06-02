@@ -41,8 +41,8 @@ var FloatingIPAddress = os.Getenv("doFloatingIP")
 
 // AccessDigitalOceanSpaces returns an S3 client for DO Spaces work
 func AccessDigitalOceanSpaces() *minio.Client {
-	accessKey := os.Getenv("CTX_SPACES_KEY")
-	secKey := os.Getenv("CTX_SPACES_SECRET")
+	accessKey := os.Getenv("CTX_DIGITALOCEAN_SPACES_KEY")
+	secKey := os.Getenv("CTX_DIGITALOCEAN_SPACES_SECRET")
 	endpoint := "ams3.digitaloceanspaces.com"
 	ssl := true
 
