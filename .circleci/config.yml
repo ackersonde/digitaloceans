@@ -57,7 +57,7 @@ jobs:
 
               $DEPLOY_CONNECT docker network create web || true
               curl -X POST \
-                --data build_parameters[DEPLOY_SERVER_IP]=$NEW_SERVER_IPV4 --data build_parameters[CIRCLE_JOB]=deploy \
+                --data build_parameters[DEPLOY_SERVER_IP]=$NEW_SERVER_IPV4 \
                 https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/ackerson.de-go/tree/master?circle-token=${CTX_CIRCLECI_API_TOKEN}
 
               $DEPLOY_CONNECT mkdir -p $TRAEFIK_DIR/logs
@@ -84,13 +84,12 @@ jobs:
           name: Deploy bender slackbot & Battlefleet
           command: |
             source /tmp/new_digital_ocean_droplet_params
-            curl --user ${CTX_CIRCLECI_API_TOKEN}: \
-              --data build_parameters[DEPLOY_SERVER_IP]=$NEW_SERVER_IPV4 --data build_parameters[CIRCLE_JOB]=deploy \
-              https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/battlefleet/tree/master
-
-            curl --user ${CTX_CIRCLECI_API_TOKEN}: \
-              --data build_parameters[DEPLOY_SERVER_IP]=$NEW_SERVER_IPV4 --data build_parameters[CIRCLE_JOB]=deploy \
-              https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/bender-slackbot/tree/master
+            curl -X POST \
+                --data build_parameters[DEPLOY_SERVER_IP]=$NEW_SERVER_IPV4 \
+                https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/battlefleet/tree/master?circle-token=${CTX_CIRCLECI_API_TOKEN}
+            curl -X POST \
+                --data build_parameters[DEPLOY_SERVER_IP]=$NEW_SERVER_IPV4 \
+                https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/bender-slackbot/tree/master?circle-token=${CTX_CIRCLECI_API_TOKEN}
 
 workflows:
   version: 2
