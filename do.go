@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -63,7 +64,10 @@ func main() {
 }
 
 func updateIPV6(client *godo.Client, ipv6 string, hostname string, domainID int) {
-	record, _, _ := client.Domains.Record(oauth2.NoContext, hostname, domainID)
+	record, _, err := client.Domains.Record(oauth2.NoContext, hostname, domainID)
+	if err != nil {
+		log.Printf("unable to updateIPv6 for %s: %s", hostname, err.Error())
+	}
 	fmt.Printf("current IPv6 %s: %s => %s\n", record.Name, record.Type, record.Data)
 
 	editRequest := &godo.DomainRecordEditRequest{
@@ -71,7 +75,7 @@ func updateIPV6(client *godo.Client, ipv6 string, hostname string, domainID int)
 		Name: record.Name,
 		Data: strings.ToLower(ipv6),
 	}
-	_, _, err := client.Domains.EditRecord(oauth2.NoContext, hostname, domainID, editRequest)
+	_, _, err = client.Domains.EditRecord(oauth2.NoContext, hostname, domainID, editRequest)
 	for err != nil {
 		fmt.Printf("FAIL domain update IPv6: %s\n", err)
 		time.Sleep(5 * time.Second)
