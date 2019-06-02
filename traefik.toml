@@ -48,14 +48,14 @@ defaultEntryPoints = ["http", "https"]
         [frontends.monitor.routes.monitor]
         rule = "Host:monitor.ackerson.de"
 
-#[acme]
-#email = "dan+ssl@ackerson.de"
-#storage = "acme.json"
-#entrypoint = "https"
-#[acme.dnsChallenge]
-#  provider = "digitalocean"
-#[[acme.domains]]
-#  main = "ackerson.de"
-#  sans = ["www.ackerson.de", "monitor.ackerson.de"]
-#[[acme.domains]]
-#  main = "battlefleet.eu"
+[acme]
+email = "dan@ackerson.de"
+storage = "acme.json"
+entrypoint = "https"
+[acme.dnsChallenge]
+  provider = "digitalocean"
+[[acme.domains]]
+  main = "ackerson.de"
+  sans = ["www.ackerson.de", "monitor.ackerson.de"]
+[[acme.domains]]
+  main = "battlefleet.eu"
