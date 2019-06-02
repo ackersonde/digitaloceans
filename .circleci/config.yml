@@ -56,9 +56,9 @@ jobs:
               export DEPLOY_CONNECT="ssh -o StrictHostKeyChecking=no $deployUser@$NEW_SERVER_IPV4"
 
               $DEPLOY_CONNECT docker network create web || true
-              curl --user ${CTX_CIRCLECI_API_TOKEN}: \
+              curl -X POST \
                 --data build_parameters[DEPLOY_SERVER_IP]=$NEW_SERVER_IPV4 --data build_parameters[CIRCLE_JOB]=deploy \
-                https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/ackerson.de-go/tree/master
+                https://circleci.com/api/v1.1/project/github/$CIRCLE_PROJECT_USERNAME/ackerson.de-go/tree/master?circle-token=${CTX_CIRCLECI_API_TOKEN}
 
               $DEPLOY_CONNECT mkdir -p $TRAEFIK_DIR/logs
               $DEPLOY_CONNECT touch $TRAEFIK_DIR/acme.json
@@ -68,6 +68,7 @@ jobs:
               $DEPLOY_CONNECT docker rm -f traefik || true
               $DEPLOY_CONNECT docker run -d --restart=always --network='web' \
                 --label='traefik.frontend.rule=Host:monitor.ackerson.de' \
+                -e DO_AUTH_TOKEN=$CTX_DIGITALOCEAN_API_TOKEN \
                 -v /var/run/docker.sock:/var/run/docker.sock \
                 -v $TRAEFIK_DIR/traefik.toml:/traefik.toml \
                 -v $TRAEFIK_DIR/logs:/tmp \
