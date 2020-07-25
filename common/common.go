@@ -5,18 +5,13 @@ import (
 	"context"
 	"io"
 	"log"
-	"mime"
 	"net"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/digitalocean/godo"
-	"github.com/gorilla/mux"
-	minio "github.com/minio/minio-go"
 	"golang.org/x/oauth2"
 )
 
@@ -38,22 +33,6 @@ var firewallID = os.Getenv("CTX_DIGITALOCEAN_FIREWALL")
 
 // FloatingIPAddress is the static IP for ackerson.de
 var FloatingIPAddress = os.Getenv("doFloatingIP")
-
-// AccessDigitalOceanSpaces returns an S3 client for DO Spaces work
-func AccessDigitalOceanSpaces() *minio.Client {
-	accessKey := os.Getenv("CTX_DIGITALOCEAN_SPACES_KEY")
-	secKey := os.Getenv("CTX_DIGITALOCEAN_SPACES_SECRET")
-	endpoint := "ams3.digitaloceanspaces.com"
-	ssl := true
-
-	// Initiate a client using DigitalOcean Spaces.
-	client, err := minio.New(endpoint, accessKey, secKey, ssl)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return client
-}
 
 // PrepareDigitalOceanLogin does what it says on the box
 func PrepareDigitalOceanLogin() *godo.Client {
@@ -260,64 +239,4 @@ func DeleteDODroplet(ID int) string {
 	}
 
 	return result
-}
-
-// CopyFileToDOSpaces is a helper func for copying files to DigitalOcean Spaces
-// Helpful ideas: https://github.com/minio/minio-go/tree/master/examples/s3
-func CopyFileToDOSpaces(spacesName string, remoteFile string, url string, filesize int64) (err error) {
-	var reader io.Reader
-
-	resp, err := http.Get(url)
-	if err != nil {
-		if strings.Contains(err.Error(), "unsupported protocol scheme \"\"") {
-			reader, err = os.Open(url)
-			if err != nil {
-				log.Printf("can't find local file %s: %s", url, err.Error())
-			}
-		}
-	} else {
-		reader = bufio.NewReader(resp.Body)
-	}
-
-	remoteFile = strings.TrimPrefix(remoteFile, "/")
-	mimeType := mime.TypeByExtension(filepath.Ext(remoteFile))
-	if mimeType == "" {
-		mimeType = "application/octet-stream"
-	}
-
-	doSpacesClient := AccessDigitalOceanSpaces()
-
-	userMetaData := map[string]string{"x-amz-acl": "public-read"}
-	wrote, err := doSpacesClient.PutObject(spacesName, remoteFile, reader, filesize,
-		minio.PutObjectOptions{UserMetadata: userMetaData, ContentType: mimeType})
-	if err != nil {
-		return err
-	}
-
-	log.Printf("successfully wrote %d bytes to DO Spaces (%s)\n", wrote, remoteFile)
-
-	return nil
-}
-
-// DownloadFromDOSpaces is a helper function for downloading files from DOS
-func DownloadFromDOSpaces(spacesName string, w http.ResponseWriter, r *http.Request) {
-	minioClient := AccessDigitalOceanSpaces()
-
-	vars := mux.Vars(r)
-	fileName := vars["file"]
-
-	if fileName == "" {
-		http.Error(w, "Listing not allowed", http.StatusUnauthorized)
-		return
-	}
-	file, err := minioClient.GetObject(spacesName, fileName, minio.GetObjectOptions{})
-	if err != nil {
-		http.Error(w, "Couldn't find '"+fileName+"'", http.StatusBadRequest)
-		return
-	}
-
-	if _, err = io.Copy(w, file); err != nil {
-		http.Error(w, "Couldn't write "+spacesName+"/"+fileName, http.StatusBadRequest)
-		return
-	}
 }
