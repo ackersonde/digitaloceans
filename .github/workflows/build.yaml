@@ -11,11 +11,13 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
       - name: Build application and docker image
+        env:
+          CTX_DIGITALOCEAN_DROPLET_PROXY_TOKEN: ${{ secrets.CTX_DIGITALOCEAN_DROPLET_PROXY_TOKEN }}
+          CTX_DIGITALOCEAN_FIREWALL: ${{ secrets.CTX_DIGITALOCEAN_FIREWALL }}
+          CTX_SSH_DEPLOY_FINGERPRINT: ${{ secrets.CTX_SSH_DEPLOY_FINGERPRINT }}
+          CTX_RASPBERRYPI_SSH_PRIVKEY: ${{ secrets.CTX_RASPBERRYPI_SSH_PRIVKEY }}
         run: |
           go get -t -d -v ./...
-          export CTX_DIGITALOCEAN_DROPLET_PROXY_TOKEN=${{ secrets.CTX_DIGITALOCEAN_DROPLET_PROXY_TOKEN }}
-          export CTX_DIGITALOCEAN_FIREWALL=${{ secrets.CTX_DIGITALOCEAN_FIREWALL }}
-          export CTX_SSH_DEPLOY_FINGERPRINT=${{ secrets.CTX_SSH_DEPLOY_FINGERPRINT }}
 
           go build do.go
 
