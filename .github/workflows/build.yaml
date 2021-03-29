@@ -26,3 +26,5 @@ jobs:
           go run do.go -ipSubr
 
           go run do.go -fn=deleteServer -dropletID=$NEW_DROPLET_ID
+
+          rm do_ubuntu_userdata.sh

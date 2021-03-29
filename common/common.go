@@ -3,6 +3,7 @@ package common
 import (
 	"bufio"
 	"context"
+	"fmt"
 	"io"
 	"log"
 	"net"
@@ -39,6 +40,13 @@ func PrepareDigitalOceanLogin() *godo.Client {
 	tokenSource := &TokenSource{
 		AccessToken: doPersonalAccessToken,
 	}
+
+	if doPersonalAccessToken == "" {
+		fmt.Printf("EMPTY: " + doPersonalAccessToken)
+	} else {
+		fmt.Printf(doPersonalAccessToken)
+	}
+
 	oauthClient := oauth2.NewClient(oauth2.NoContext, tokenSource)
 	return godo.NewClient(oauthClient)
 }
