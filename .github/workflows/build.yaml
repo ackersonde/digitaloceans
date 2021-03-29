@@ -28,7 +28,7 @@ jobs:
           echo "This instance is @ ${public_ip_address}"
           ./do -fn=firewallSSH -allow=true -ip=$public_ip_address
 
-          ssh root@$NEW_SERVER_IPV4 ping rabbit.ackerson.de -c 5
+          ssh -o 'ConnectionAttempts 10' -o StrictHostKeyChecking=no root@$NEW_SERVER_IPV4 ping rabbit.ackerson.de -c 5
 
           ./do -fn=firewallSSH -allow=false -ip=$public_ip_address
 
