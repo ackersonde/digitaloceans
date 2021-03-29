@@ -22,10 +22,9 @@ jobs:
           go get -t -d -v ./...
           go build do.go
 
-          cat > /tmp/sshkey <<EOF
-          ${{ secrets.CTX_GITHUB_SSH_DEPLOY_PRIVKEY }}
-          EOF
-          chmod 400 /tmp/sshkey
+          envsubst < gh_ubuntu_userdata.sh > github_ubuntu_userdata.sh
+          chmod u+x github_ubuntu_userdata.sh
+          ./github_ubuntu_userdata.sh
 
           envsubst < do_ubuntu_userdata.sh > digitalocean_ubuntu_userdata.sh
           ./do -fn=createNewServer
