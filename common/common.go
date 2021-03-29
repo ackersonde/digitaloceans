@@ -40,12 +40,6 @@ func PrepareDigitalOceanLogin() *godo.Client {
 		AccessToken: doPersonalAccessToken,
 	}
 
-	if doPersonalAccessToken == "" {
-		log.Fatal("EMPTY: " + doPersonalAccessToken)
-	} else {
-		log.Println(doPersonalAccessToken)
-	}
-
 	oauthClient := oauth2.NewClient(oauth2.NoContext, tokenSource)
 	return godo.NewClient(oauthClient)
 }

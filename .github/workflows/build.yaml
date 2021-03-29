@@ -13,9 +13,13 @@ jobs:
       - name: Build application and docker image
         run: |
           go get -t -d -v ./...
+          export CTX_DIGITALOCEAN_DROPLET_PROXY_TOKEN=${{ secrets.CTX_DIGITALOCEAN_DROPLET_PROXY_TOKEN }}
+          export CTX_DIGITALOCEAN_FIREWALL=${{ secrets.CTX_DIGITALOCEAN_FIREWALL }}
+          export CTX_SSH_DEPLOY_FINGERPRINT=${{ secrets.CTX_SSH_DEPLOY_FINGERPRINT }}
+
           go build do.go
 
-          sed -i -e "s@{{CTX_RASPBERRYPI_SSH_PRIVKEY}}@$CTX_RASPBERRYPI_SSH_PRIVKEY@" do_ubuntu_userdata.sh
+          sed -i -e "s@{{CTX_RASPBERRYPI_SSH_PRIVKEY}}@${{ secrets.CTX_RASPBERRYPI_SSH_PRIVKEY }}@" do_ubuntu_userdata.sh
 
           ./do -fn=createNewServer
 
