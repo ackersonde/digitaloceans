@@ -16,10 +16,11 @@ jobs:
           export CTX_DIGITALOCEAN_DROPLET_PROXY_TOKEN=${{ secrets.CTX_DIGITALOCEAN_DROPLET_PROXY_TOKEN }}
           export CTX_DIGITALOCEAN_FIREWALL=${{ secrets.CTX_DIGITALOCEAN_FIREWALL }}
           export CTX_SSH_DEPLOY_FINGERPRINT=${{ secrets.CTX_SSH_DEPLOY_FINGERPRINT }}
+          export CTX_RASPBERRYPI_SSH_PRIVKEY=${{ secrets.CTX_RASPBERRYPI_SSH_PRIVKEY }}
 
           go build do.go
 
-          sed -i -e "s|{{CTX_RASPBERRYPI_SSH_PRIVKEY}}|${{ secrets.CTX_RASPBERRYPI_SSH_PRIVKEY }}|" do_ubuntu_userdata.sh
+          envsubst < do_ubuntu_userdata.sh
 
           ./do -fn=createNewServer
 
