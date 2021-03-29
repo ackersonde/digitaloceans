@@ -1,0 +1,33 @@
+name: Deploy DigitalOcean Droplet
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+    inputs:
+      ca_pub_fingerprint:
+        description: fingerprint of CA signed user cert
+        required: false
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+      - name: Build application and docker image
+        run: |
+          go get -t -d -v ./...
+          sed -i -e "s@{{CTX_RASPBERRYPI_SSH_PRIVKEY}}@$CTX_RASPBERRYPI_SSH_PRIVKEY@" do_ubuntu_userdata.sh
+
+          go run do.go -fn=createNewServer
+
+          source /tmp/new_digital_ocean_droplet_params
+
+          go run do.go -ipAddr
+
+          ssh root@$NEW_SERVER_IPV4 ping rabbit.ackerson.de -c 5
+
+          go run do.go -ipSubr
+
+          go run do.go -fn=deleteServer -dropletID=$NEW_DROPLET_ID

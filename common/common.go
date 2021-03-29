@@ -28,7 +28,7 @@ func (t *TokenSource) Token() (*oauth2.Token, error) {
 	return token, nil
 }
 
-var doPersonalAccessToken = os.Getenv("CTX_DIGITALOCEAN_TOKEN")
+var doPersonalAccessToken = os.Getenv("CTX_DIGITALOCEAN_DROPLET_PROXY_TOKEN")
 var firewallID = os.Getenv("CTX_DIGITALOCEAN_FIREWALL")
 
 // FloatingIPAddress is the static IP for ackerson.de

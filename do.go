@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net"
 	"os"
 	"strconv"
 	"strings"
@@ -16,14 +17,14 @@ import (
 )
 
 var doDropletInfoSite = "https://cloud.digitalocean.com/droplets/"
-var digitalOceanSSHLoginPubKey = os.Getenv("digitalOceanSSHLoginPubKey")
-var circleCIBuild = os.Getenv("CIRCLE_BUILD_NUM")
+var digitalOceanSSHLoginPubKey = os.Getenv("CTX_DIGITALOCEAN_SSH_PUBKEY")
+var githubBuild = os.Getenv("GITHUB_RUN_ID")
 
 func main() {
 	client := common.PrepareDigitalOceanLogin()
 
-	fnPtr := flag.String("fn", "updateDNS|createNewServer", "which function to run")
-	dropletIDPtr := flag.String("dropletID", "<digitalOceanDropletID>", "DO droplet to attach floatingIP to")
+	fnPtr := flag.String("fn", "createNewServer|deleteServer|toggleSSHFirewall", "which function to run")
+
 	flag.Parse()
 	if *fnPtr == "createNewServer" {
 		droplet := createDroplet(client)
@@ -46,21 +47,36 @@ func main() {
 		if err2 != nil {
 			fmt.Printf("Failed to add droplet to Firewall: %s", err2)
 		}
-	} else {
+	} else if *fnPtr == "deleteServer" {
+		dropletIDPtr := flag.String("dropletID", "<digitalOceanDropletID>", "DO droplet to attach floatingIP to")
+
 		dropletID, _ := strconv.Atoi(*dropletIDPtr)
 		droplet, _, _ := client.Droplets.Get(oauth2.NoContext, dropletID)
-		fmt.Printf("\ngoing to work on DropletID: %d\n", droplet.ID)
+		fmt.Printf("\ndeleting DropletID: %d\n", droplet.ID)
 
-		reassignFloatingIP(client, droplet)
+		common.DeleteDODroplet(dropletID)
+	} else if *fnPtr == "toggleSSHFirewall" {
+		ipAddrPtr := flag.String("ipAddr", "<ipAddress to add>", "so deploying agent can access Droplet")
+		ipSubrPtr := flag.String("ipSubr", "<ipAddress to remove>", "deploying agent no longer needs access")
 
-		// update ipv6 DNS entry to new droplet
-		ipv6, _ := droplet.PublicIPv6()
-		fmt.Printf("new IPv6 addr: %s\n", ipv6)
-		updateIPV6(client, ipv6, "ackerson.de", 23738236)
-		updateIPV6(client, ipv6, "battlefleet.eu", 55451096)
-
-		//common.UpdateFirewall()
+		if *ipAddrPtr != "" {
+			common.ToggleSSHipAddress(true, getCurrentIP(), client)
+		} else if *ipSubrPtr != "" {
+			common.ToggleSSHipAddress(false, getCurrentIP(), client)
+		}
 	}
+}
+
+func getCurrentIP() string {
+	conn, err := net.Dial("udp", "8.8.8.8:80")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+
+	return localAddr.IP.String()
 }
 
 func updateIPV6(client *godo.Client, ipv6 string, hostname string, domainID int) {
@@ -117,21 +133,21 @@ func createDroplet(client *godo.Client) *godo.Droplet {
 	var newDroplet *godo.Droplet
 
 	fingerprint := os.Getenv("CTX_SSH_DEPLOY_FINGERPRINT")
-	dropletName := "b" + circleCIBuild + ".ackerson.de"
+	dropletName := "b" + githubBuild + ".ackerson.de"
 
 	sshKeys := []godo.DropletCreateSSHKey{}
 	sshKeys = append(sshKeys, godo.DropletCreateSSHKey{Fingerprint: fingerprint})
 
-	digitaloceanIgnitionJSON, err := ioutil.ReadFile("digitalocean_ignition.json")
+	digitaloceanIgnitionJSON, err := ioutil.ReadFile("do_ubuntu_userdata.sh")
 	if err != nil {
 		fmt.Printf("Failed to read JSON file: %s", err)
 	} else {
 		createRequest := &godo.DropletCreateRequest{
 			Name:   dropletName,
 			Region: "fra1",
-			Size:   "s-1vcpu-1gb",
+			Size:   "s-1vcpu-1gb-amd", //ubuntu-s-1vcpu-1gb-amd-fra1-01
 			Image: godo.DropletCreateImage{
-				Slug: "coreos-stable",
+				Slug: "ubuntu-20-10-x64",
 			},
 			IPv6:     true,
 			SSHKeys:  sshKeys,
