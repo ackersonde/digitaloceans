@@ -25,7 +25,6 @@ jobs:
           envsubst < gh_ubuntu_userdata.sh > github_ubuntu_userdata.sh
           chmod u+x github_ubuntu_userdata.sh
           ./github_ubuntu_userdata.sh
-          ls -lrt ~/.ssh/id_rsa
 
           envsubst < do_ubuntu_userdata.sh > digitalocean_ubuntu_userdata.sh
           ./do -fn=createNewServer
@@ -35,7 +34,7 @@ jobs:
           echo "This instance is @ ${public_ip_address}"
           ./do -fn=firewallSSH -allow=true -ip=$public_ip_address
 
-          ssh -o 'ConnectionAttempts 10' -o StrictHostKeyChecking=no root@$NEW_SERVER_IPV4 ping rabbit.ackerson.de -c 5
+          ssh -i ~/.ssh/id_rsa -o 'ConnectionAttempts 10' -o StrictHostKeyChecking=no root@$NEW_SERVER_IPV4 ping rabbit.ackerson.de -c 5
 
           ./do -fn=firewallSSH -allow=false -ip=$public_ip_address
 
