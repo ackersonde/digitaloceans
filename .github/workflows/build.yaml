@@ -33,7 +33,7 @@ jobs:
           public_ip_address=$(curl -s https://checkip.amazonaws.com)
           echo "This instance is @ ${public_ip_address}"
           #./do -fn=firewallSSH -allow=true -ip=$public_ip_address
-          sleep 10
+          sleep 20
           ssh -v -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@$NEW_SERVER_IPV4 ping rabbit.ackerson.de -c 5
 
           #./do -fn=firewallSSH -allow=false -ip=$public_ip_address
