@@ -26,6 +26,7 @@ func main() {
 	fnPtr := flag.String("fn", "createNewServer|deleteServer|firewallSSH", "which function to run")
 	dropletIDPtr := flag.String("dropletID", "<digitalOceanDropletID>", "DO droplet to attach floatingIP to")
 	allowPtr := flag.Bool("allow", false, "so deploying agent can access Droplet")
+	ipPtr := flag.String("ip", "<internet ip addr of github action instance>", "see prev param")
 	flag.Parse()
 
 	if *fnPtr == "createNewServer" {
@@ -56,7 +57,7 @@ func main() {
 
 		common.DeleteDODroplet(dropletID)
 	} else if *fnPtr == "firewallSSH" {
-		common.ToggleSSHipAddress(*allowPtr, getCurrentIP(), client)
+		common.ToggleSSHipAddress(*allowPtr, *ipPtr, client)
 	}
 }
 
