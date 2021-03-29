@@ -45,11 +45,11 @@ func main() {
 			fmt.Printf("Failed to write /tmp/new_digital_ocean_droplet_params: %s", err)
 		}
 
-		// var firewallID = os.Getenv("CTX_DIGITALOCEAN_FIREWALL")
-		// _, err2 := client.Firewalls.AddDroplets(oauth2.NoContext, firewallID, droplet.ID)
-		// if err2 != nil {
-		// 	fmt.Printf("Failed to add droplet to Firewall: %s", err2)
-		// }
+		var firewallID = os.Getenv("CTX_DIGITALOCEAN_FIREWALL")
+		_, err2 := client.Firewalls.AddDroplets(oauth2.NoContext, firewallID, droplet.ID)
+		if err2 != nil {
+			fmt.Printf("Failed to add droplet to Firewall: %s", err2)
+		}
 	} else if *fnPtr == "deleteServer" {
 		dropletID, _ := strconv.Atoi(*dropletIDPtr)
 		droplet, _, _ := client.Droplets.Get(oauth2.NoContext, dropletID)
@@ -127,10 +127,12 @@ func createDroplet(client *godo.Client) *godo.Droplet {
 	var newDroplet *godo.Droplet
 
 	fingerprint := os.Getenv("CTX_SSH_DEPLOY_FINGERPRINT")
+	githubFP := os.Getenv("CTX_GITHUB_SSH_DEPLOY_FINGERPRINT")
 	dropletName := "b" + githubBuild + ".ackerson.de"
 
 	sshKeys := []godo.DropletCreateSSHKey{}
 	sshKeys = append(sshKeys, godo.DropletCreateSSHKey{Fingerprint: fingerprint})
+	sshKeys = append(sshKeys, godo.DropletCreateSSHKey{Fingerprint: githubFP})
 
 	digitaloceanIgnitionJSON, err := ioutil.ReadFile("digitalocean_ubuntu_userdata.sh")
 	if err != nil {
