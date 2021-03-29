@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/danackerson/digitalocean/common"
+	"github.com/ackersonde/digitaloceans/common"
 	"github.com/digitalocean/godo"
 	"golang.org/x/oauth2"
 )
