@@ -32,11 +32,16 @@ jobs:
           source /tmp/new_digital_ocean_droplet_params
           public_ip_address=$(curl -s https://checkip.amazonaws.com)
           echo "This instance is @ ${public_ip_address}"
-          #./do -fn=firewallSSH -allow=true -ip=$public_ip_address
-          sleep 20
-          ssh -v -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@$NEW_SERVER_IPV4 ping rabbit.ackerson.de -c 5
 
-          #./do -fn=firewallSSH -allow=false -ip=$public_ip_address
+          ./do -fn=firewallSSH -allow=true -ip=$public_ip_address
+
+          sleep 20
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@$NEW_SERVER_IPV4 << EOF
+            scp -o StrictHostKeyChecking=no go.sum ubuntu@${{ secrets.CTX_IPV6_MASTER_HOME }}:~/
+            ssh ubuntu@${{ secrets.CTX_IPV6_MASTER_HOME }} ls -lrt
+          EOF
+
+          ./do -fn=firewallSSH -allow=false -ip=$public_ip_address
 
           ./do -fn=deleteServer -dropletID=$NEW_DROPLET_ID
-          rm digitalocean_ubuntu_userdata.sh /tmp/sshkey
+          rm digitalocean_ubuntu_userdata.sh ~/.ssh/id_rsa
