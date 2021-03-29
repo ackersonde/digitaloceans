@@ -97,7 +97,6 @@ func updateIPV6(client *godo.Client, ipv6 string, hostname string, domainID int)
 func waitUntilDropletReady(client *godo.Client, dropletID int) {
 	opt := &godo.ListOptions{}
 
-	j := 0
 	for ready := false; !ready; {
 		actions, _, _ := client.Droplets.Actions(oauth2.NoContext, dropletID, opt)
 		ready = true
@@ -105,12 +104,13 @@ func waitUntilDropletReady(client *godo.Client, dropletID int) {
 			fmt.Printf("%d: %s => %s\n", j, action.Type, action.Status)
 			if action.Status == "in-progress" {
 				ready = false
+				break
 			}
+			j++
 		}
 		if !ready {
 			time.Sleep(time.Second * 5)
 		}
-		j++
 	}
 }
 

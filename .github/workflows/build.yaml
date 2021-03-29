@@ -37,7 +37,7 @@ jobs:
 
           sleep 20
           ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no root@$NEW_SERVER_IPV4 << EOF
-            scp -o StrictHostKeyChecking=no go.sum ubuntu@${{ secrets.CTX_IPV6_MASTER_HOME }}:~/
+            scp -o StrictHostKeyChecking=no go.sum ubuntu@[${{ secrets.CTX_IPV6_MASTER_HOME }}]:~/
             ssh ubuntu@${{ secrets.CTX_IPV6_MASTER_HOME }} ls -lrt
           EOF
 
