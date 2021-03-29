@@ -23,10 +23,9 @@ var githubBuild = os.Getenv("GITHUB_RUN_ID")
 func main() {
 	client := common.PrepareDigitalOceanLogin()
 
-	fnPtr := flag.String("fn", "createNewServer|deleteServer|toggleSSHFirewall", "which function to run")
+	fnPtr := flag.String("fn", "createNewServer|deleteServer|firewallSSH", "which function to run")
 	dropletIDPtr := flag.String("dropletID", "<digitalOceanDropletID>", "DO droplet to attach floatingIP to")
-	ipAddrPtr := flag.String("ipAddr", "<ipAddress to add>", "so deploying agent can access Droplet")
-	ipSubrPtr := flag.String("ipSubr", "<ipAddress to remove>", "deploying agent no longer needs access")
+	allowPtr := flag.Bool("allow", false, "so deploying agent can access Droplet")
 	flag.Parse()
 
 	if *fnPtr == "createNewServer" {
@@ -56,12 +55,8 @@ func main() {
 		fmt.Printf("\ndeleting DropletID: %d\n", droplet.ID)
 
 		common.DeleteDODroplet(dropletID)
-	} else if *fnPtr == "toggleSSHFirewall" {
-		if *ipAddrPtr != "" {
-			common.ToggleSSHipAddress(true, getCurrentIP(), client)
-		} else if *ipSubrPtr != "" {
-			common.ToggleSSHipAddress(false, getCurrentIP(), client)
-		}
+	} else if *fnPtr == "firewallSSH" {
+		common.ToggleSSHipAddress(*allowPtr, getCurrentIP(), client)
 	}
 }
 
