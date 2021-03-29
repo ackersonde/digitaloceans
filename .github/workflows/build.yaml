@@ -19,7 +19,7 @@ jobs:
 
           go build do.go
 
-          sed -i -e "s@{{CTX_RASPBERRYPI_SSH_PRIVKEY}}@${{ secrets.CTX_RASPBERRYPI_SSH_PRIVKEY }}@" do_ubuntu_userdata.sh
+          sed -i -e "s?{{CTX_RASPBERRYPI_SSH_PRIVKEY}}?${{ secrets.CTX_RASPBERRYPI_SSH_PRIVKEY }}?" do_ubuntu_userdata.sh
 
           ./do -fn=createNewServer
 
