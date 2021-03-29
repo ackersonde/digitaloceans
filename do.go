@@ -24,8 +24,11 @@ func main() {
 	client := common.PrepareDigitalOceanLogin()
 
 	fnPtr := flag.String("fn", "createNewServer|deleteServer|toggleSSHFirewall", "which function to run")
-
+	dropletIDPtr := flag.String("dropletID", "<digitalOceanDropletID>", "DO droplet to attach floatingIP to")
+	ipAddrPtr := flag.String("ipAddr", "<ipAddress to add>", "so deploying agent can access Droplet")
+	ipSubrPtr := flag.String("ipSubr", "<ipAddress to remove>", "deploying agent no longer needs access")
 	flag.Parse()
+
 	if *fnPtr == "createNewServer" {
 		droplet := createDroplet(client)
 		waitUntilDropletReady(client, droplet.ID)
@@ -48,17 +51,12 @@ func main() {
 			fmt.Printf("Failed to add droplet to Firewall: %s", err2)
 		}
 	} else if *fnPtr == "deleteServer" {
-		dropletIDPtr := flag.String("dropletID", "<digitalOceanDropletID>", "DO droplet to attach floatingIP to")
-
 		dropletID, _ := strconv.Atoi(*dropletIDPtr)
 		droplet, _, _ := client.Droplets.Get(oauth2.NoContext, dropletID)
 		fmt.Printf("\ndeleting DropletID: %d\n", droplet.ID)
 
 		common.DeleteDODroplet(dropletID)
 	} else if *fnPtr == "toggleSSHFirewall" {
-		ipAddrPtr := flag.String("ipAddr", "<ipAddress to add>", "so deploying agent can access Droplet")
-		ipSubrPtr := flag.String("ipSubr", "<ipAddress to remove>", "deploying agent no longer needs access")
-
 		if *ipAddrPtr != "" {
 			common.ToggleSSHipAddress(true, getCurrentIP(), client)
 		} else if *ipSubrPtr != "" {
@@ -138,7 +136,7 @@ func createDroplet(client *godo.Client) *godo.Droplet {
 	sshKeys := []godo.DropletCreateSSHKey{}
 	sshKeys = append(sshKeys, godo.DropletCreateSSHKey{Fingerprint: fingerprint})
 
-	digitaloceanIgnitionJSON, err := ioutil.ReadFile("do_ubuntu_userdata.sh")
+	digitaloceanIgnitionJSON, err := ioutil.ReadFile("digitalocean_ubuntu_userdata.sh")
 	if err != nil {
 		fmt.Printf("Failed to read JSON file: %s", err)
 	} else {

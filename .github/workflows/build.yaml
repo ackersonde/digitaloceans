@@ -21,7 +21,7 @@ jobs:
 
           go build do.go
 
-          envsubst < do_ubuntu_userdata.sh
+          envsubst < do_ubuntu_userdata.sh > digitalocean_ubuntu_userdata.sh
 
           ./do -fn=createNewServer
 
