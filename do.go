@@ -104,6 +104,7 @@ func waitUntilDropletReady(client *godo.Client, dropletID int) {
 			fmt.Printf("%d: %s => %s\n", j, action.Type, action.Status)
 			if action.Status == "in-progress" {
 				ready = false
+				j++
 			}
 		}
 		if !ready {
