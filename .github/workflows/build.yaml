@@ -3,11 +3,6 @@ name: Deploy DigitalOcean Droplet
 on:
   push:
     branches: [ master ]
-  workflow_dispatch:
-    inputs:
-      ca_pub_fingerprint:
-        description: fingerprint of CA signed user cert
-        required: false
 
 jobs:
   build:
