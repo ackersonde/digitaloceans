@@ -7,4 +7,3 @@ cat > "$KEY_FILE_NAME" <<EOF
 EOF
 
 chmod 400 "$KEY_FILE_NAME"
-
