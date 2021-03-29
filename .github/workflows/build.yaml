@@ -15,7 +15,7 @@ jobs:
           CTX_DIGITALOCEAN_DROPLET_PROXY_TOKEN: ${{ secrets.CTX_DIGITALOCEAN_DROPLET_PROXY_TOKEN }}
           CTX_DIGITALOCEAN_FIREWALL: ${{ secrets.CTX_DIGITALOCEAN_FIREWALL }}
           CTX_SSH_DEPLOY_FINGERPRINT: ${{ secrets.CTX_SSH_DEPLOY_FINGERPRINT }}
-          CTX_RASPBERRYPI_SSH_PRIVKEY: ${{ secrets.CTX_RASPBERRYPI_SSH_PRIVKEY }}
+          CTX_RASPBERRYPI_SSH_PRIVKEY: "${{ secrets.CTX_RASPBERRYPI_SSH_PRIVKEY }}"
         run: |
           go get -t -d -v ./...
 
@@ -27,11 +27,11 @@ jobs:
 
           source /tmp/new_digital_ocean_droplet_params
 
-          ./do -ipAddr
+          ./do -fn=toggleSSHFirewall -ipAddr
 
           ssh root@$NEW_SERVER_IPV4 ping rabbit.ackerson.de -c 5
 
-          ./do -ipSubr
+          ./do -fn=toggleSSHFirewall -ipSubr
 
           ./do -fn=deleteServer -dropletID=$NEW_DROPLET_ID
 
