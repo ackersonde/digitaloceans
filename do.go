@@ -138,8 +138,14 @@ func reassignFloatingIP(client *godo.Client, droplet *godo.Droplet) {
 }
 
 func createSSHKey(client *godo.Client) *godo.Key {
-	privateKey, _ := rsa.GenerateKey(rand.Reader, 4096)
-	publicRsaKey, _ := ssh.NewPublicKey(privateKey)
+	privateKeyPair, err := rsa.GenerateKey(rand.Reader, 4096)
+	if err != nil {
+		log.Printf("rsa.GenerateKey returned error: %v", err)
+	}
+	publicRsaKey, err := ssh.NewPublicKey(privateKeyPair.PublicKey)
+	if err != nil {
+		log.Printf("ssh.NewPublicKey returned error: %v", err)
+	}
 	pubKeyBytes := ssh.MarshalAuthorizedKey(publicRsaKey)
 
 	createRequest := &godo.KeyCreateRequest{
