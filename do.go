@@ -3,6 +3,8 @@ package main
 import (
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -116,9 +118,9 @@ func waitUntilDropletReady(client *godo.Client, dropletID int) {
 			fmt.Printf("%d: %s => %s\n", j, action.Type, action.Status)
 			if action.Status == "in-progress" {
 				ready = false
+				j++
 				break
 			}
-			j++
 		}
 		if !ready {
 			time.Sleep(time.Second * 5)
@@ -142,6 +144,7 @@ func createSSHKey(client *godo.Client) *godo.Key {
 	if err != nil {
 		log.Printf("rsa.GenerateKey returned error: %v", err)
 	}
+
 	publicRsaKey, err := ssh.NewPublicKey(privateKeyPair.Public())
 	if err != nil {
 		log.Printf("ssh.NewPublicKey returned error: %v", err)
@@ -158,6 +161,17 @@ func createSSHKey(client *godo.Client) *godo.Key {
 	key, _, err := client.Keys.Create(oauth2.NoContext, createRequest)
 	if err != nil {
 		log.Printf("Keys.Create returned error: %v", err)
+	} else {
+		pemdata := pem.EncodeToMemory(
+			&pem.Block{
+				Type:  "RSA PRIVATE KEY",
+				Bytes: x509.MarshalPKCS1PrivateKey(privateKeyPair),
+			},
+		)
+		err := ioutil.WriteFile("/home/runner/.ssh/id_rsa", pemdata, 0400)
+		if err != nil {
+			fmt.Printf("Failed to write /home/runner/.ssh/id_rsa: %s", err)
+		}
 	}
 
 	return key
