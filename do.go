@@ -142,7 +142,7 @@ func createSSHKey(client *godo.Client) *godo.Key {
 	if err != nil {
 		log.Printf("rsa.GenerateKey returned error: %v", err)
 	}
-	publicRsaKey, err := ssh.NewPublicKey(privateKeyPair.PublicKey)
+	publicRsaKey, err := ssh.NewPublicKey(privateKeyPair.Public())
 	if err != nil {
 		log.Printf("ssh.NewPublicKey returned error: %v", err)
 	}
