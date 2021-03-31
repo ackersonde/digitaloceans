@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/rand"
+	"crypto/rsa"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -13,6 +15,7 @@ import (
 
 	"github.com/ackersonde/digitaloceans/common"
 	"github.com/digitalocean/godo"
+	"golang.org/x/crypto/ssh"
 	"golang.org/x/oauth2"
 )
 
@@ -25,12 +28,15 @@ func main() {
 
 	fnPtr := flag.String("fn", "createNewServer|deleteServer|firewallSSH", "which function to run")
 	dropletIDPtr := flag.String("dropletID", "<digitalOceanDropletID>", "DO droplet to attach floatingIP to")
+	keyIDPtr := flag.String("keyID", "<sshKeyID>", "DO droplet sshKey")
 	allowPtr := flag.Bool("allow", false, "so deploying agent can access Droplet")
 	ipPtr := flag.String("ip", "<internet ip addr of github action instance>", "see prev param")
 	flag.Parse()
 
 	if *fnPtr == "createNewServer" {
-		droplet := createDroplet(client)
+		key := createSSHKey(client)
+
+		droplet := createDroplet(client, key)
 		waitUntilDropletReady(client, droplet.ID)
 		droplet, _, _ = client.Droplets.Get(oauth2.NoContext, droplet.ID)
 
@@ -39,7 +45,11 @@ func main() {
 		fmt.Printf("%s: %s @%s\n", ipv4, droplet.Name, addr)
 
 		// Write /tmp/new_digital_ocean_droplet_params
-		envVarsFile := []byte("export NEW_SERVER_IPV4=" + ipv4 + "\nexport NEW_DROPLET_ID=" + strconv.Itoa(droplet.ID) + "\n")
+		envVarsFile := []byte(
+			"export NEW_SERVER_IPV4=" + ipv4 +
+				"\nexport NEW_DROPLET_ID=" + strconv.Itoa(droplet.ID) +
+				"\nexport NEW_SSH_KEY_ID=" + strconv.Itoa(key.ID))
+
 		err := ioutil.WriteFile("/tmp/new_digital_ocean_droplet_params", envVarsFile, 0644)
 		if err != nil {
 			fmt.Printf("Failed to write /tmp/new_digital_ocean_droplet_params: %s", err)
@@ -52,10 +62,12 @@ func main() {
 		}
 	} else if *fnPtr == "deleteServer" {
 		dropletID, _ := strconv.Atoi(*dropletIDPtr)
+		keyID, _ := strconv.Atoi(*keyIDPtr)
 		droplet, _, _ := client.Droplets.Get(oauth2.NoContext, dropletID)
 		fmt.Printf("\ndeleting DropletID: %d\n", droplet.ID)
 
 		common.DeleteDODroplet(dropletID)
+		common.DeleteSSHKey(keyID)
 	} else if *fnPtr == "firewallSSH" {
 		common.ToggleSSHipAddress(*allowPtr, *ipPtr, client)
 	}
@@ -125,16 +137,35 @@ func reassignFloatingIP(client *godo.Client, droplet *godo.Droplet) {
 	}
 }
 
-func createDroplet(client *godo.Client) *godo.Droplet {
+func createSSHKey(client *godo.Client) *godo.Key {
+	privateKey, _ := rsa.GenerateKey(rand.Reader, 4096)
+	publicRsaKey, _ := ssh.NewPublicKey(privateKey)
+	pubKeyBytes := ssh.MarshalAuthorizedKey(publicRsaKey)
+
+	createRequest := &godo.KeyCreateRequest{
+		Name:      githubBuild + "SSHkey",
+		PublicKey: string(pubKeyBytes),
+	}
+
+	log.Println("Public key generated")
+
+	key, _, err := client.Keys.Create(oauth2.NoContext, createRequest)
+	if err != nil {
+		log.Printf("Keys.Create returned error: %v", err)
+	}
+
+	return key
+}
+
+func createDroplet(client *godo.Client, key *godo.Key) *godo.Droplet {
 	var newDroplet *godo.Droplet
 
 	fingerprint := os.Getenv("CTX_SSH_DEPLOY_FINGERPRINT")
-	githubFP := os.Getenv("CTX_GITHUB_SSH_DEPLOY_FINGERPRINT")
 	dropletName := "b" + githubBuild + ".ackerson.de"
 
 	sshKeys := []godo.DropletCreateSSHKey{}
 	sshKeys = append(sshKeys, godo.DropletCreateSSHKey{Fingerprint: fingerprint})
-	sshKeys = append(sshKeys, godo.DropletCreateSSHKey{Fingerprint: githubFP})
+	sshKeys = append(sshKeys, godo.DropletCreateSSHKey{Fingerprint: key.Fingerprint})
 
 	digitaloceanIgnitionJSON, err := ioutil.ReadFile("digitalocean_ubuntu_userdata.sh")
 	if err != nil {

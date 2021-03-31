@@ -241,3 +241,19 @@ func DeleteDODroplet(ID int) string {
 
 	return result
 }
+
+// DeleteSSHKey more here https://developers.digitalocean.com/documentation/v2/#delete-a-key
+func DeleteSSHKey(ID int) string {
+	var result string
+
+	client := PrepareDigitalOceanLogin()
+
+	_, err := client.Keys.DeleteByID(oauth2.NoContext, ID)
+	if err == nil {
+		result = "Successfully deleted SSH Key `" + strconv.Itoa(ID) + "`"
+	} else {
+		result = err.Error()
+	}
+
+	return result
+}

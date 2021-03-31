@@ -10,21 +10,15 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
-      - name: Build application and docker image
+      - name: Build application
         env:
           CTX_DIGITALOCEAN_DROPLET_PROXY_TOKEN: ${{ secrets.CTX_DIGITALOCEAN_DROPLET_PROXY_TOKEN }}
           CTX_DIGITALOCEAN_FIREWALL: ${{ secrets.CTX_DIGITALOCEAN_FIREWALL }}
           CTX_SSH_DEPLOY_FINGERPRINT: ${{ secrets.CTX_SSH_DEPLOY_FINGERPRINT }}
           CTX_RASPBERRYPI_SSH_PRIVKEY: "${{ secrets.CTX_RASPBERRYPI_SSH_PRIVKEY }}"
-          CTX_GITHUB_SSH_DEPLOY_FINGERPRINT: ${{ secrets.CTX_GITHUB_SSH_DEPLOY_FINGERPRINT }}
-          CTX_GITHUB_SSH_DEPLOY_PRIVKEY: "${{ secrets.CTX_GITHUB_SSH_DEPLOY_PRIVKEY }}"
         run: |
           go get -t -d -v ./...
           go build do.go
-
-          envsubst < gh_ubuntu_userdata.sh > github_ubuntu_userdata.sh
-          chmod u+x github_ubuntu_userdata.sh
-          ./github_ubuntu_userdata.sh
 
           envsubst < do_ubuntu_userdata.sh > digitalocean_ubuntu_userdata.sh
           ./do -fn=createNewServer
@@ -36,6 +30,7 @@ jobs:
           ./do -fn=firewallSSH -allow=true -ip=$public_ip_address
 
           sleep 20
+
           scp -o StrictHostKeyChecking=no go.sum root@$NEW_SERVER_IPV4:~/
           ssh root@$NEW_SERVER_IPV4 << EOF
             scp -o StrictHostKeyChecking=no go.sum ubuntu@[${{ secrets.CTX_IPV6_MASTER_HOME }}]:~/
@@ -44,5 +39,5 @@ jobs:
 
           ./do -fn=firewallSSH -allow=false -ip=$public_ip_address
 
-          ./do -fn=deleteServer -dropletID=$NEW_DROPLET_ID
+          ./do -fn=deleteServer -dropletID=$NEW_DROPLET_ID -keyID=$NEW_SSH_KEY_ID
           rm digitalocean_ubuntu_userdata.sh ~/.ssh/id_rsa
