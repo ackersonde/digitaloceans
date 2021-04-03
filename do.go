@@ -22,7 +22,6 @@ import (
 )
 
 var doDropletInfoSite = "https://cloud.digitalocean.com/droplets/"
-var digitalOceanSSHLoginPubKey = os.Getenv("CTX_DIGITALOCEAN_SSH_PUBKEY")
 var githubBuild = os.Getenv("GITHUB_RUN_ID")
 
 func main() {

@@ -4,11 +4,7 @@
 Using the golang api from [godo](https://www.digitalocean.com/community/projects/godo), this CircleCI build creates a [custom](https://github.com/danackerson/digitalocean/blob/master/digitalocean_ignition.json) CoreOS <img src="https://coreos.com/assets/ico/favicon.png" width="16"> droplet in FRA1.
 
 Following Environment variables need to be set in your [CircleCI project](https://circleci.com/gh/danackerson/digitalocean/edit#env-vars):
-* deployUser
 * doPersonalAccessToken
-* circleCIDeployPubKey
-* encodedConsolePasswdHash
-* digitalOceanSSHLoginPubKey
 Check clippers for details.
 
 # WARNING
