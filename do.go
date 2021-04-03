@@ -18,6 +18,7 @@ import (
 	"github.com/ackersonde/digitaloceans/common"
 	"github.com/digitalocean/godo"
 	"golang.org/x/crypto/ssh"
+	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 )
 
@@ -39,11 +40,9 @@ func main() {
 
 		droplet := createDroplet(client, key)
 		waitUntilDropletReady(client, droplet.ID)
-		droplet, _, _ = client.Droplets.Get(oauth2.NoContext, droplet.ID)
+		droplet, _, _ = client.Droplets.Get(context.Background(), droplet.ID)
 
 		ipv4, _ := droplet.PublicIPv4()
-		addr := doDropletInfoSite + strconv.Itoa(droplet.ID)
-		fmt.Printf("%s: %s @%s\n", ipv4, droplet.Name, addr)
 
 		// Write /tmp/new_digital_ocean_droplet_params
 		envVarsFile := []byte(
