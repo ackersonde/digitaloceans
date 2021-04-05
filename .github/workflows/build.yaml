@@ -2,7 +2,7 @@ name: Deploy DigitalOcean Droplet
 
 on:
   push:
-    branches: [ main ]
+    branches: [ nope ]
 
 jobs:
   build:
