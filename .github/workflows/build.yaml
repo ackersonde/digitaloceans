@@ -24,21 +24,22 @@ jobs:
           mkdir ~/.ssh
           ./do -fn=createNewServer
 
-          source /tmp/new_digital_ocean_droplet_params
           public_ip_address=$(curl -s https://checkip.amazonaws.com)
-          echo "This instance is @ ${public_ip_address}"
+          echo PUBLIC_IP=${public_ip_address} >> /tmp/new_digital_ocean_droplet_params
+          source /tmp/new_digital_ocean_droplet_params
 
           ./do -fn=firewallSSH -allow=true -ip=$public_ip_address
+          sleep 30
 
-          sleep 20
-
+          # TODO: deploy traefik to droplet
           scp -o StrictHostKeyChecking=no go.sum root@$NEW_SERVER_IPV4:~/
-          ssh root@$NEW_SERVER_IPV4 << EOF
-            scp -o StrictHostKeyChecking=no go.sum ubuntu@[${{ secrets.CTX_IPV6_MASTER_HOME }}]:~/
-            ssh ubuntu@${{ secrets.CTX_IPV6_MASTER_HOME }} ls -lrt
-          EOF
+
+          # Use LetsEncrypt staging server
+          # --certificatesResolvers.sample.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory
+
+          # TODO: update DNS entries of monitor.ackerson.de w/ IPV4 & IPV6 addrs
+          # TODO: kick off deploys of homepage, benderbot, telegrambot ?
 
           # Cleanup TODO: put in if: always() block!
           ./do -fn=firewallSSH -allow=false -ip=$public_ip_address
-          ./do -fn=deleteServer -dropletID=$NEW_DROPLET_ID -keyID=$NEW_SSH_KEY_ID
           rm digitalocean_ubuntu_userdata.sh ~/.ssh/id_rsa /tmp/new_digital_ocean_droplet_params
