@@ -13,8 +13,8 @@ echo "deb https://repos.insights.digitalocean.com/apt/do-agent/ main main" > /et
 curl -fsSL https://repos.insights.digitalocean.com/sonar-agent.asc | apt-key add -
 
 apt-get update
-DEBIAN_FRONTEND=noninteractive apt-get install docker.io do-agent
-DEBIAN_FRONTEND=noninteractive apt-get upgrade
+apt-get -y install docker.io do-agent
+apt-get --yes --force-yes -o Dpkg::Options::="--force-confold" upgrade
 
 systemctl start docker
 systemctl enable docker
