@@ -180,13 +180,14 @@ func createDroplet(client *godo.Client, key *godo.Key) *godo.Droplet {
 		createRequest := &godo.DropletCreateRequest{
 			Name:   dropletName,
 			Region: "fra1",
-			Size:   "s-1vcpu-1gb-amd", //ubuntu-s-1vcpu-1gb-amd-fra1-01
+			Size:   "s-1vcpu-1gb-amd",
 			Image: godo.DropletCreateImage{
 				Slug: "ubuntu-20-10-x64",
 			},
-			IPv6:     true,
-			SSHKeys:  sshKeys,
-			UserData: string(digitaloceanIgnitionJSON),
+			IPv6:       true,
+			Monitoring: true,
+			SSHKeys:    sshKeys,
+			UserData:   string(digitaloceanIgnitionJSON),
 		}
 
 		newDroplet, _, err = client.Droplets.Create(context.Background(), createRequest)
