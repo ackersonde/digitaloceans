@@ -13,7 +13,7 @@ echo "deb https://repos.insights.digitalocean.com/apt/do-agent/ main main" > /et
 curl -fsSL https://repos.insights.digitalocean.com/sonar-agent.asc | apt-key add -
 
 apt-get update
-apt-get -y install docker.io do-agent iptables-persistent netfilter-persistent
+apt-get -y install docker.io do-agent netfilter-persistent
 
 systemctl start docker
 systemctl enable docker
@@ -51,6 +51,7 @@ EOF
 systemctl restart docker
 
 ip6tables -t nat -A POSTROUTING -s fd00::/80 ! -o docker0 -j MASQUERADE
+mkdir /etc/iptables
 netfilter-persistent save
 
 # docker run -d -p 8080:80 --restart=always --name webtest busybox sh -c 'echo "Hello world!" > index.html && httpd -f -v'
