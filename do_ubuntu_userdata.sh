@@ -13,7 +13,7 @@ echo "deb https://repos.insights.digitalocean.com/apt/do-agent/ main main" > /et
 curl -fsSL https://repos.insights.digitalocean.com/sonar-agent.asc | apt-key add -
 
 apt-get update
-apt-get -y install docker.io do-agent
+apt-get -y install docker.io do-agent iptables-persistent netfilter-persistent
 
 systemctl start docker
 systemctl enable docker
@@ -23,8 +23,8 @@ dpkg-reconfigure -f noninteractive unattended-upgrades
 
 cat > /etc/apt/apt.conf.d/50unattended-upgrades << EOF
 // Automatically upgrade packages from these (origin, archive) pairs
-Unattended-Upgrade::Allowed-Origins {
-    // ${distro_id} and ${distro_codename} will be automatically expanded
+    Unattended-Upgrade::Allowed-Origins {
+        // ${distro_id} and ${distro_codename} will be automatically expanded
     "${distro_id} stable";
     "${distro_id} ${distro_codename}-security";
     "${distro_id} ${distro_codename}-updates";
@@ -41,13 +41,16 @@ Unattended-Upgrade::Automatic-Reboot "true";
 EOF
 
 
-# TODO: setup ipv6 capability?
-#cat > /etc/docker/daemon.json <<EOF
-# {
-#  "ipv6": true,
-#  "fixed-cidr-v6": "<DO_RANGE>:ffff::/80"
-#}
-#EOF
-#systemctl restart docker
+# setup ipv6 capability
+cat > /etc/docker/daemon.json <<EOF
+{
+  "ipv6": true,
+  "fixed-cidr-v6": "fd00::/80"
+}
+EOF
+systemctl restart docker
 
-#ip6tables -t nat -A POSTROUTING -s <DO_RANGE>:ffff::/80 ! -o docker0 -j MASQUERADE
+ip6tables -t nat -A POSTROUTING -s fd00::/80 ! -o docker0 -j MASQUERADE
+netfilter-persistent save
+
+# docker run -d -p 8080:80 --restart=always --name webtest busybox sh -c 'echo "Hello world!" > index.html && httpd -f -v'
