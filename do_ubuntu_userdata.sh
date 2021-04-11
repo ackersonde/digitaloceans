@@ -8,7 +8,7 @@ EOF
 chmod 400 /root/.ssh/id_rsa
 touch ~/.hushlogin
 
-cat > /etc/apt/apt.conf.d/local <<EOF
+cat > /etc/apt/apt.conf.d/999local <<EOF
 Dpkg::Options {
   "--force-confdef";
   "--force-confold";
