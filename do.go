@@ -31,6 +31,7 @@ func main() {
 	keyIDPtr := flag.String("keyID", "<sshKeyID>", "DO droplet sshKey")
 	allowPtr := flag.Bool("allow", false, "so deploying agent can access Droplet")
 	ipPtr := flag.String("ip", "<internet ip addr of github action instance>", "see prev param")
+	tagPtr := flag.String("tag", "<tag>", "tag to add to droplet")
 	flag.Parse()
 
 	if *fnPtr == "createNewServer" {
@@ -38,7 +39,16 @@ func main() {
 
 		droplet := createDroplet(client, key)
 		waitUntilDropletReady(client, droplet.ID)
+
+		var oldDroplet godo.Droplet
 		droplet, _, _ = client.Droplets.Get(context.Background(), droplet.ID)
+		if *tagPtr != "" {
+			oldDroplets, _, _ := client.Droplets.ListByTag(context.Background(), *tagPtr, &godo.ListOptions{})
+			if len(oldDroplets) > 0 {
+				oldDroplet = oldDroplets[0]
+			}
+			droplet.Tags = append(droplet.Tags, *tagPtr)
+		}
 
 		ipv4, _ := droplet.PublicIPv4()
 		ipv6, _ := droplet.PublicIPv6()
@@ -48,6 +58,7 @@ func main() {
 			"export NEW_SERVER_IPV4=" + ipv4 +
 				"\nexport NEW_SERVER_IPV6=" + ipv6 +
 				"\nexport NEW_DROPLET_ID=" + strconv.Itoa(droplet.ID) +
+				"\nexport OLD_DROPLET_ID=" + strconv.Itoa(oldDroplet.ID) +
 				"\nexport NEW_SSH_KEY_ID=" + strconv.Itoa(key.ID))
 
 		err := ioutil.WriteFile(envFile, envVarsFile, 0644)

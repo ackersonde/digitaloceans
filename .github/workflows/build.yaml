@@ -24,7 +24,7 @@ jobs:
 
           envsubst < do_ubuntu_userdata.sh > digitalocean_ubuntu_userdata.sh
           mkdir ~/.ssh
-          ./do -fn=createNewServer
+          ./do -fn=createNewServer -tag=traefik
 
           public_ip_address=$(curl -s https://checkip.amazonaws.com)
           echo PUBLIC_IP=${public_ip_address} >> /tmp/new_digital_ocean_droplet_params
@@ -77,4 +77,8 @@ jobs:
 
           # Cleanup TODO: put in if: always() block!
           ./do -fn=firewallSSH -allow=false -ip=$public_ip_address -keyID=$NEW_SSH_KEY_ID
+
+          # delete orig "traefik" droplet
+          ./do -fn=deleteServer -dropletID=$OLD_DROPLET_ID
+
           rm digitalocean_ubuntu_userdata.sh ~/.ssh/id_rsa /tmp/new_digital_ocean_droplet_params
