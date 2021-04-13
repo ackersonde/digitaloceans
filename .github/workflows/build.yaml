@@ -50,11 +50,11 @@ jobs:
               --label='traefik.http.middlewares.api_auth.basicauth.users=${{ secrets.CTX_BASIC_AUTH_USER }}:${{ secrets.CTX_BASIC_AUTH_PASSWD }}' \
               --label='traefik.http.routers.api.entrypoints=web,secure' \
               --label='traefik.http.routers.api.middlewares=api_auth' \
-              --label='traefik.http.routers.api.rule=Host(\\\`monitor.ackerson.de\\\`)' \
+              --label='traefik.http.routers.api.rule=Host(\`monitor.ackerson.de\`)' \
               --label='traefik.http.routers.api.service=api@internal' \
               --label='traefik.http.routers.api.tls.certResolver=letsencrypt' \
               --label='traefik.http.routers.api.tls.domains=monitor.ackerson.de' \
-              --label='traefik.http.routers.https-redirect.rule=HostRegexp(\\\`{any:.*}\\\`)' \
+              --label='traefik.http.routers.https-redirect.rule=HostRegexp(\`{any:.*}\`)' \
               --label='traefik.http.routers.https-redirect.middlewares=https-redirect@docker' \
               --label='traefik.http.middlewares.https-redirect.redirectscheme.scheme=https' \
               --label='traefik.http.middlewares.https-redirect.redirectscheme.permanent=true' \
