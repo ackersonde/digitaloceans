@@ -47,7 +47,6 @@ func main() {
 			if len(oldDroplets) > 0 {
 				oldDroplet = oldDroplets[0]
 			}
-			droplet.Tags = append(droplet.Tags, *tagPtr)
 		}
 
 		ipv4, _ := droplet.PublicIPv4()
@@ -228,6 +227,7 @@ func createDroplet(client *godo.Client, key *godo.Key) *godo.Droplet {
 			Monitoring: true,
 			SSHKeys:    sshKeys,
 			UserData:   string(digitaloceanIgnitionJSON),
+			Tags:       []string{"traefik"},
 		}
 
 		newDroplet, _, err = client.Droplets.Create(context.Background(), createRequest)
