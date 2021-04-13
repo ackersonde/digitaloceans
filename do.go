@@ -66,13 +66,16 @@ func main() {
 		droplet, _, _ := client.Droplets.Get(context.Background(), dropletID)
 		fmt.Printf("\ndeleting DropletID: %d\n", droplet.ID)
 
-		common.DeleteDODroplet(dropletID)
-		common.DeleteSSHKey(keyID)
+		resp, _ := client.Keys.DeleteByID(context.Background(), keyID)
+		fmt.Printf("Keys.DeleteByID? %s", resp)
+		resp, _ = client.Droplets.Delete(context.Background(), dropletID)
+		fmt.Printf("Droplets.Delete? %s", resp)
 	} else if *fnPtr == "firewallSSH" {
 		common.ToggleSSHipAddress(*allowPtr, *ipPtr, client)
 		if !*allowPtr {
 			keyID, _ := strconv.Atoi(*keyIDPtr)
-			common.DeleteSSHKey(keyID)
+			resp, _ := client.Keys.DeleteByID(context.Background(), keyID)
+			fmt.Printf("Keys.DeleteByID? %s", resp)
 		} else {
 			_, err := os.Stat(envFile)
 			if os.IsNotExist(err) {
