@@ -39,7 +39,7 @@ jobs:
 
           # deploy traefik to droplet
           ssh root@$NEW_SERVER_IPV4 "\
-            sleep 100
+            sleep 100 && \
             docker rm -f traefik || true && \
             docker run -d --restart=always \
               -e DO_AUTH_TOKEN=${{ secrets.CTX_DIGITALOCEAN_TOKEN }} \
