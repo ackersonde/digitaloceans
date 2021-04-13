@@ -1,11 +1,14 @@
 #!/bin/bash
+base64 -d $CTX_SERVER_DEPLOY_CACERT_B64 | tee /root/.ssh/id_ed25519-cert.pub
+chmod 400 /root/.ssh/id_ed25519-cert.pub
+base64 -d $CTX_SERVER_DEPLOY_SECRET_B64 | tee /root/.ssh/id_ed25519
+chmod 400 /root/.ssh/id_ed25519
 
-# TODO: replace this key w/ 30 day rotation one
-cat > /root/.ssh/id_rsa <<EOF
-$CTX_RASPBERRYPI_SSH_PRIVKEY
+mkdir /root/traefik
+cat <<EOF >/root/traefik/acme.json
+$ACME_JSON
 EOF
-
-chmod 400 /root/.ssh/id_rsa
+chmod 600 /root/traefik/acme.json
 touch ~/.hushlogin
 
 # Setup Advanced DO monitoring

@@ -15,7 +15,8 @@ jobs:
           CTX_DIGITALOCEAN_DROPLET_PROXY_TOKEN: ${{ secrets.CTX_DIGITALOCEAN_DROPLET_PROXY_TOKEN }}
           CTX_DIGITALOCEAN_FIREWALL: ${{ secrets.CTX_DIGITALOCEAN_FIREWALL }}
           CTX_SSH_DEPLOY_FINGERPRINT: ${{ secrets.CTX_SSH_DEPLOY_FINGERPRINT }}
-          CTX_RASPBERRYPI_SSH_PRIVKEY: "${{ secrets.CTX_RASPBERRYPI_SSH_PRIVKEY }}"
+          CTX_SERVER_DEPLOY_CACERT_B64: ${{ secrets.CTX_SERVER_DEPLOY_CACERT_B64 }}
+          CTX_SERVER_DEPLOY_SECRET_B64: ${{ secrets.CTX_SERVER_DEPLOY_SECRET_B64 }}
         run: |
           go get -t -d -v ./...
           go build do.go
@@ -31,15 +32,50 @@ jobs:
           ./do -fn=firewallSSH -allow=true -ip=$public_ip_address
           sleep 30
 
-          # TODO: deploy traefik to droplet
-          scp -o StrictHostKeyChecking=no go.sum root@$NEW_SERVER_IPV4:~/
+          # prepare SSL certificate
+          ssh -o StrictHostKeyChecking=no root@$NEW_SERVER_IPV4 "\
+            mkdir -p traefik/logs || true"
+
+          scp acme.json root@$NEW_SERVER_IPV4:~/traefik/
+
+          # deploy traefik to droplet
+          ssh root@$NEW_SERVER_IPV4 "\
+            chmod 600 traefik/acme.json && \
+            docker rm -f traefik || true && \
+            docker run -d --restart=always \
+              -e DO_AUTH_TOKEN=${{ secrets.CTX_DIGITALOCEAN_TOKEN }} \
+              -v /var/run/docker.sock:/var/run/docker.sock:ro \
+              -v ~/traefik/logs:/var/log/traefik/ \
+              -v ~/traefik/acme.json:/acme.json \
+              --label='traefik.enable=true' \
+              --label='traefik.http.middlewares.api_auth.basicauth.users=${{ secrets.CTX_BASIC_AUTH_USER }}:${{ secrets.CTX_BASIC_AUTH_PASSWD }}' \
+              --label='traefik.http.routers.api.entrypoints=web,secure' \
+              --label='traefik.http.routers.api.middlewares=api_auth' \
+              --label='traefik.http.routers.api.rule=Host(\\\`monitor.ackerson.de\\\`)' \
+              --label='traefik.http.routers.api.service=api@internal' \
+              --label='traefik.http.routers.api.tls.certResolver=letsencrypt' \
+              --label='traefik.http.routers.api.tls.domains=monitor.ackerson.de' \
+              --label='traefik.http.routers.https-redirect.rule=HostRegexp(\\\`{any:.*}\\\`)' \
+              --label='traefik.http.routers.https-redirect.middlewares=https-redirect@docker' \
+              --label='traefik.http.middlewares.https-redirect.redirectscheme.scheme=https' \
+              --label='traefik.http.middlewares.https-redirect.redirectscheme.permanent=true' \
+              --label='traefik.http.middlewares.https-redirect.redirectscheme.port=443' \
+              -p 80:80 -p 443:443 --name traefik arm64v8/traefik:2.4 \
+              --accesslog.filepath=/var/log/traefik/access.log \
+              --log.filepath=/var/log/traefik/traefik.log --log.level=WARN \
+              --api --providers.docker --providers.docker.exposedByDefault=false \
+              --entrypoints.web.address=:80 --entrypoints.secure.address=:443 \
+              --certificatesResolvers.letsencrypt.acme.email=dan@ackerson.de \
+              --certificatesResolvers.letsencrypt.acme.storage=acme.json \
+              --certificatesResolvers.letsencrypt.acme.dnsChallenge.provider=digitalocean \
+              --certificatesResolvers.letsencrypt.acme.dnsChallenge.delayBeforeCheck=5"
 
           # Use LetsEncrypt staging server
           # --certificatesResolvers.sample.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory
 
-          # TODO: update DNS entries of monitor.ackerson.de w/ IPV4 & IPV6 addrs
+          ./do -fn=updateDNS -dropletID=$NEW_DROPLET_ID
           # TODO: kick off deploys of homepage, benderbot, telegrambot ?
 
           # Cleanup TODO: put in if: always() block!
-          ./do -fn=firewallSSH -allow=false -ip=$public_ip_address
-          rm digitalocean_ubuntu_userdata.sh ~/.ssh/id_rsa /tmp/new_digital_ocean_droplet_params
+          ./do -fn=firewallSSH -allow=false -ip=$public_ip_address -keyID=$NEW_SSH_KEY_ID
+          rm acme.json digitalocean_ubuntu_userdata.sh ~/.ssh/id_rsa /tmp/new_digital_ocean_droplet_params

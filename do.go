@@ -20,8 +20,8 @@ import (
 	"golang.org/x/net/context"
 )
 
-var doDropletInfoSite = "https://cloud.digitalocean.com/droplets/"
 var githubBuild = os.Getenv("GITHUB_RUN_ID")
+var envFile = "/tmp/new_digital_ocean_droplet_params"
 
 func main() {
 	client := common.PrepareDigitalOceanLogin()
@@ -50,9 +50,9 @@ func main() {
 				"\nexport NEW_DROPLET_ID=" + strconv.Itoa(droplet.ID) +
 				"\nexport NEW_SSH_KEY_ID=" + strconv.Itoa(key.ID))
 
-		err := ioutil.WriteFile("/tmp/new_digital_ocean_droplet_params", envVarsFile, 0644)
+		err := ioutil.WriteFile(envFile, envVarsFile, 0644)
 		if err != nil {
-			fmt.Printf("Failed to write /tmp/new_digital_ocean_droplet_params: %s", err)
+			fmt.Printf("Failed to write %s: %s", envFile, err)
 		}
 
 		var firewallID = os.Getenv("CTX_DIGITALOCEAN_FIREWALL")
@@ -70,24 +70,49 @@ func main() {
 		common.DeleteSSHKey(keyID)
 	} else if *fnPtr == "firewallSSH" {
 		common.ToggleSSHipAddress(*allowPtr, *ipPtr, client)
+		if !*allowPtr {
+			keyID, _ := strconv.Atoi(*keyIDPtr)
+			common.DeleteSSHKey(keyID)
+		} else {
+			_, err := os.Stat(envFile)
+			if os.IsNotExist(err) {
+				key := createSSHKey(client)
+				// Write /tmp/new_digital_ocean_droplet_params
+				envVarsFile := []byte(
+					"export NEW_SSH_KEY_ID=" + strconv.Itoa(key.ID))
+
+				err := ioutil.WriteFile(envFile, envVarsFile, 0644)
+				if err != nil {
+					fmt.Printf("Failed to write %s: %s", envFile, err)
+				}
+			}
+		}
+	} else if *fnPtr == "updateDNS" {
+		dropletID, _ := strconv.Atoi(*dropletIDPtr)
+		droplet, _, _ := client.Droplets.Get(context.Background(), dropletID)
+		ipv4, _ := droplet.PublicIPv4()
+		ipv6, _ := droplet.PublicIPv6()
+
+		updateDNS(client, ipv6, "ackerson.de", 23738236)
+		updateDNS(client, ipv4, "ackerson.de", 23738257)
 	}
 }
 
-func updateIPV6(client *godo.Client, ipv6 string, hostname string, domainID int) {
+func updateDNS(client *godo.Client, ipAddr string, hostname string, domainID int) {
 	record, _, err := client.Domains.Record(context.Background(), hostname, domainID)
 	if err != nil {
-		log.Printf("unable to updateIPv6 for %s: %s", hostname, err.Error())
+		log.Printf("unable to updateDNS for %s: %s", hostname, err.Error())
 	}
-	fmt.Printf("current IPv6 %s: %s => %s\n", record.Name, record.Type, record.Data)
+	fmt.Printf("current DNS %s: %s => %s\n", record.Name, record.Type, record.Data)
 
 	editRequest := &godo.DomainRecordEditRequest{
 		Type: record.Type,
 		Name: record.Name,
-		Data: strings.ToLower(ipv6),
+		Data: strings.ToLower(ipAddr),
 	}
 	_, _, err = client.Domains.EditRecord(context.Background(), hostname, domainID, editRequest)
 	for err != nil {
-		fmt.Printf("FAIL domain update IPv6: %s\n", err)
+		fmt.Printf("FAIL domain update DNS: %s\n", err)
 		time.Sleep(5 * time.Second)
 		_, _, err = client.Domains.EditRecord(context.Background(), hostname, domainID, editRequest)
 	}
@@ -96,11 +121,12 @@ func updateIPV6(client *godo.Client, ipv6 string, hostname string, domainID int)
 // wait for in-progress actions to complete
 func waitUntilDropletReady(client *godo.Client, dropletID int) {
 	opt := &godo.ListOptions{}
+	j := 0
 
 	for ready := false; !ready; {
 		actions, _, _ := client.Droplets.Actions(context.Background(), dropletID, opt)
 		ready = true
-		for j, action := range actions {
+		for _, action := range actions {
 			fmt.Printf("%d: %s => %s\n", j, action.Type, action.Status)
 			if action.Status == "in-progress" {
 				ready = false
