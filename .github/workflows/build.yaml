@@ -39,7 +39,7 @@ jobs:
 
           # deploy traefik to droplet
           ssh root@$NEW_SERVER_IPV4 "\
-            sleep 150
+            sleep 100
             docker rm -f traefik || true && \
             docker run -d --restart=always \
               -e DO_AUTH_TOKEN=${{ secrets.CTX_DIGITALOCEAN_TOKEN }} \
@@ -59,7 +59,7 @@ jobs:
               --label='traefik.http.middlewares.https-redirect.redirectscheme.scheme=https' \
               --label='traefik.http.middlewares.https-redirect.redirectscheme.permanent=true' \
               --label='traefik.http.middlewares.https-redirect.redirectscheme.port=443' \
-              -p 80:80 -p 443:443 --name traefik arm64v8/traefik:2.4 \
+              -p 80:80 -p 443:443 --name traefik traefik:2.4 \
               --accesslog.filepath=/var/log/traefik/access.log \
               --log.filepath=/var/log/traefik/traefik.log --log.level=WARN \
               --api --providers.docker --providers.docker.exposedByDefault=false \
