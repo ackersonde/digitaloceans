@@ -37,11 +37,8 @@ func main() {
 	if *fnPtr == "createNewServer" {
 		key := createSSHKey(client)
 
-		droplet := createDroplet(client, key)
-		waitUntilDropletReady(client, droplet.ID)
-
 		var oldDroplet godo.Droplet
-		droplet, _, _ = client.Droplets.Get(context.Background(), droplet.ID)
+		oldDroplet.ID = 1 // set default, nonsensical value
 		if *tagPtr != "" {
 			oldDroplets, _, _ := client.Droplets.ListByTag(context.Background(), *tagPtr, &godo.ListOptions{})
 			if len(oldDroplets) > 0 {
@@ -49,6 +46,10 @@ func main() {
 			}
 		}
 
+		droplet := createDroplet(client, key)
+		waitUntilDropletReady(client, droplet.ID)
+
+		droplet, _, _ = client.Droplets.Get(context.Background(), droplet.ID)
 		ipv4, _ := droplet.PublicIPv4()
 		ipv6, _ := droplet.PublicIPv6()
 
