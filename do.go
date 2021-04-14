@@ -31,22 +31,15 @@ func main() {
 	keyIDPtr := flag.String("keyID", "<sshKeyID>", "DO droplet sshKey")
 	allowPtr := flag.Bool("allow", false, "so deploying agent can access Droplet")
 	ipPtr := flag.String("ip", "<internet ip addr of github action instance>", "see prev param")
-	tagPtr := flag.String("tag", "<tag>", "tag to add to droplet")
+	tagPtr := flag.String("tag", "dynamic", "tag to add to droplet")
 	flag.Parse()
 
 	if *fnPtr == "createNewServer" {
 		key := createSSHKey(client)
 
-		var oldDroplet godo.Droplet
-		oldDroplet.ID = 1 // set default, nonsensical value
-		if *tagPtr != "" {
-			oldDroplets, _, _ := client.Droplets.ListByTag(context.Background(), *tagPtr, &godo.ListOptions{})
-			if len(oldDroplets) > 0 {
-				oldDroplet = oldDroplets[0]
-			}
-		}
+		existingDeployDroplet := findExistingDeployDroplet(client, *tagPtr)
 
-		droplet := createDroplet(client, key)
+		droplet := createDroplet(client, key, *tagPtr)
 		waitUntilDropletReady(client, droplet.ID)
 
 		droplet, _, _ = client.Droplets.Get(context.Background(), droplet.ID)
@@ -58,7 +51,7 @@ func main() {
 			"export NEW_SERVER_IPV4=" + ipv4 +
 				"\nexport NEW_SERVER_IPV6=" + ipv6 +
 				"\nexport NEW_DROPLET_ID=" + strconv.Itoa(droplet.ID) +
-				"\nexport OLD_DROPLET_ID=" + strconv.Itoa(oldDroplet.ID) +
+				"\nexport OLD_DROPLET_ID=" + strconv.Itoa(existingDeployDroplet.ID) +
 				"\nexport NEW_SSH_KEY_ID=" + strconv.Itoa(key.ID))
 
 		err := ioutil.WriteFile(envFile, envVarsFile, 0644)
@@ -90,10 +83,10 @@ func main() {
 		} else {
 			_, err := os.Stat(envFile)
 			if os.IsNotExist(err) {
-				key := createSSHKey(client)
+				existingDeployDroplet := findExistingDeployDroplet(client, *tagPtr)
 				// Write /tmp/new_digital_ocean_droplet_params
 				envVarsFile := []byte(
-					"export NEW_SSH_KEY_ID=" + strconv.Itoa(key.ID))
+					"export DROPLET_HOST=" + existingDeployDroplet.Name)
 
 				err := ioutil.WriteFile(envFile, envVarsFile, 0644)
 				if err != nil {
@@ -110,6 +103,19 @@ func main() {
 		updateDNS(client, ipv6, "ackerson.de", 23738236)
 		updateDNS(client, ipv4, "ackerson.de", 23738257)
 	}
+}
+
+func findExistingDeployDroplet(client *godo.Client, tag string) godo.Droplet {
+	var droplet godo.Droplet
+	droplet.ID = 1 // set default, nonsensical value
+	if tag == "traefik" {
+		droplets, _, _ := client.Droplets.ListByTag(context.Background(), tag, &godo.ListOptions{})
+		if len(droplets) > 0 {
+			droplet = droplets[0]
+		}
+	}
+
+	return droplet
 }
 
 func updateDNS(client *godo.Client, ipAddr string, hostname string, domainID int) {
@@ -203,7 +209,7 @@ func createSSHKey(client *godo.Client) *godo.Key {
 	return key
 }
 
-func createDroplet(client *godo.Client, key *godo.Key) *godo.Droplet {
+func createDroplet(client *godo.Client, key *godo.Key, tag string) *godo.Droplet {
 	var newDroplet *godo.Droplet
 
 	fingerprint := os.Getenv("CTX_SSH_DEPLOY_FINGERPRINT")
@@ -217,6 +223,9 @@ func createDroplet(client *godo.Client, key *godo.Key) *godo.Droplet {
 	if err != nil {
 		fmt.Printf("Failed to read JSON file: %s", err)
 	} else {
+		if tag == "" {
+			tag = "dynamic"
+		}
 		createRequest := &godo.DropletCreateRequest{
 			Name:   dropletName,
 			Region: "fra1",
@@ -228,7 +237,7 @@ func createDroplet(client *godo.Client, key *godo.Key) *godo.Droplet {
 			Monitoring: true,
 			SSHKeys:    sshKeys,
 			UserData:   string(digitaloceanIgnitionJSON),
-			Tags:       []string{"traefik"},
+			Tags:       []string{tag},
 		}
 
 		newDroplet, _, err = client.Droplets.Create(context.Background(), createRequest)
