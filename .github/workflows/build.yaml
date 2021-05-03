@@ -43,7 +43,7 @@ jobs:
           source /tmp/new_digital_ocean_droplet_params
 
           ./do -fn=firewallSSH -allow=true -ip=$public_ip_address
-          sleep 130 # wait for instance to launch, provide ssh & cloudinit to finish
+          sleep 140 # wait for instance to launch, provide ssh & cloudinit to finish
 
           # prepare SSL certificate
           ssh -o StrictHostKeyChecking=no root@$NEW_SERVER_IPV4 "\
