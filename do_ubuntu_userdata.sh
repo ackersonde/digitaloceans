@@ -57,6 +57,3 @@ systemctl restart docker
 ip6tables -t nat -A POSTROUTING -s fd00::/80 ! -o docker0 -j MASQUERADE
 mkdir /etc/iptables
 netfilter-persistent save
-
-# TODO: add SSH Cert authentication
-cat >> /root/.ssh/authorized_keys | base64 -d ${{CTX_SERVER_DEPLOY_PUBLIC_B64}}
