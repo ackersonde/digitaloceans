@@ -78,7 +78,7 @@ jobs:
 
           # add firewall rules for new server (and cut outgoing one)
           envsubst < firewall_rules.sh > fw_rules.sh
-          scp -o StrictHostKeyChecking=no fw_rules.sh root@ackerson.de
+          scp -v -o StrictHostKeyChecking=no fw_rules.sh root@ackerson.de
           ssh root@ackerson.de ./fw_rules.sh
 
           ./do -fn=updateDNS -dropletID=$NEW_DROPLET_ID
