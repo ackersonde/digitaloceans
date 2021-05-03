@@ -35,7 +35,7 @@ func main() {
 	flag.Parse()
 
 	if *fnPtr == "createNewServer" {
-		key := createSSHKey(client)
+		//key := createSSHKey(client)
 
 		existingDeployDroplet := findExistingDeployDroplet(client, *tagPtr)
 		existingIPv6, _ := existingDeployDroplet.PublicIPv6()
@@ -53,8 +53,7 @@ func main() {
 				"\nexport NEW_SERVER_IPV6=" + ipv6 +
 				"\nexport NEW_DROPLET_ID=" + strconv.Itoa(droplet.ID) +
 				"\nexport OLD_DROPLET_ID=" + strconv.Itoa(existingDeployDroplet.ID) +
-				"\nexport OLD_SERVER_IPV6=" + existingIPv6 +
-				"\nexport NEW_SSH_KEY_ID=" + strconv.Itoa(key.ID))
+				"\nexport OLD_SERVER_IPV6=" + existingIPv6)
 
 		err := ioutil.WriteFile(envFile, envVarsFile, 0644)
 		if err != nil {
@@ -189,8 +188,6 @@ func createSSHKey(client *godo.Client) *godo.Key {
 		Name:      githubBuild + "SSHkey",
 		PublicKey: string(pubKeyBytes),
 	}
-
-	log.Println("Public key generated")
 
 	key, _, err := client.Keys.Create(context.Background(), createRequest)
 	if err != nil {
