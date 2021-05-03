@@ -38,6 +38,7 @@ func main() {
 		key := createSSHKey(client)
 
 		existingDeployDroplet := findExistingDeployDroplet(client, *tagPtr)
+		existingIPv6, _ := existingDeployDroplet.PublicIPv6()
 
 		droplet := createDroplet(client, key, *tagPtr)
 		waitUntilDropletReady(client, droplet.ID)
@@ -52,6 +53,7 @@ func main() {
 				"\nexport NEW_SERVER_IPV6=" + ipv6 +
 				"\nexport NEW_DROPLET_ID=" + strconv.Itoa(droplet.ID) +
 				"\nexport OLD_DROPLET_ID=" + strconv.Itoa(existingDeployDroplet.ID) +
+				"\nexport OLD_SERVER_IPV6=" + existingIPv6 +
 				"\nexport NEW_SSH_KEY_ID=" + strconv.Itoa(key.ID))
 
 		err := ioutil.WriteFile(envFile, envVarsFile, 0644)

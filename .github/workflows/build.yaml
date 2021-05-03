@@ -22,7 +22,10 @@ jobs:
           CTX_SSH_DEPLOY_FINGERPRINT: ${{ secrets.CTX_SSH_DEPLOY_FINGERPRINT }}
           CTX_SERVER_DEPLOY_CACERT_B64: ${{ secrets.CTX_SERVER_DEPLOY_CACERT_B64 }}
           CTX_SERVER_DEPLOY_SECRET_B64: ${{ secrets.CTX_SERVER_DEPLOY_SECRET_B64 }}
-          ACME_JSON: ${{ secrets.ACME_JSON }}
+          ACME_JSON: ${{ secrets.CTX_ACME_JSON }}
+          CTX_BUILD_HOST: ${{ secrets.CTX_IPV6_BUILD_HOME }}
+          CTX_MASTER_HOST: ${{ secrets.CTX_IPV6_MASTER_HOME }}
+          CTX_SLAVE_HOST: ${{ secrets.CTX_IPV6_SLAVE_HOME }}
         run: |
           go get -t -d -v ./...
           go build do.go
@@ -32,17 +35,16 @@ jobs:
           ./do -fn=createNewServer -tag=traefik
 
           public_ip_address=$(curl -s https://checkip.amazonaws.com)
-          echo PUBLIC_IP=${public_ip_address} >> /tmp/new_digital_ocean_droplet_params
           source /tmp/new_digital_ocean_droplet_params
 
           ./do -fn=firewallSSH -allow=true -ip=$public_ip_address
-          sleep 30
+          sleep 30 # wait for instance to launch and provide ssh
 
           # prepare SSL certificate
           ssh -o StrictHostKeyChecking=no root@$NEW_SERVER_IPV4 "\
             mkdir -p traefik/logs || true"
 
-          # deploy traefik to droplet
+          # deploy traefik to droplet - sleep here is to let cloudinit finish
           ssh root@$NEW_SERVER_IPV4 "\
             sleep 100 && \
             docker rm -f traefik || true && \
@@ -74,16 +76,32 @@ jobs:
               --certificatesResolvers.letsencrypt.acme.dnsChallenge.provider=digitalocean \
               --certificatesResolvers.letsencrypt.acme.dnsChallenge.delayBeforeCheck=5"
 
-          # Use LetsEncrypt staging server
-          # --certificatesResolvers.sample.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory
+          # add firewall rules for new server (and cut outgoing one)
+          envsubst < firewall_rules.sh > fw_rules.sh
+          scp -o StrictHostKeyChecking=no fw_rules.sh root@ackerson.de
+          ssh root@ackerson.de ./fw_rules.sh
 
           ./do -fn=updateDNS -dropletID=$NEW_DROPLET_ID
-          # TODO: kick off deploys of homepage, benderbot, telegrambot ?
-
-          # Cleanup TODO: put in if: always() block!
           ./do -fn=firewallSSH -allow=false -ip=$public_ip_address -keyID=$NEW_SSH_KEY_ID
-
-          # delete orig "traefik" droplet
           ./do -fn=deleteServer -dropletID=$OLD_DROPLET_ID
+          sleep 30 # DNS update above
+
+          # kick off deploys of homepage, bender, telegram-bot
+          curl -X POST -u "${{secrets.CTX_GITHUB_PERSONAL_ACCESS_USERNAME }}:${{secrets.CTX_GITHUB_PERSONAL_ACCESS_TOKEN}}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/ackersonde/ackerson.de-go/actions/workflows/build.yml/dispatches \
+            -d '{"ref":"master"}'
+          curl -X POST -u "${{secrets.CTX_GITHUB_PERSONAL_ACCESS_USERNAME}}:${{secrets.CTX_GITHUB_PERSONAL_ACCESS_TOKEN}}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/ackersonde/bender-slackbot/actions/workflows/build.yml/dispatches \
+            -d '{"ref":"master"}'
+          curl -X POST -u "${{secrets.CTX_GITHUB_PERSONAL_ACCESS_USERNAME}}:${{secrets.CTX_GITHUB_PERSONAL_ACCESS_TOKEN}}"
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/ackersonde/telegram-bot/actions/workflows/build.yml/dispatches \
+            -d '{"ref":"main"}'
 
           rm digitalocean_ubuntu_userdata.sh ~/.ssh/id_rsa /tmp/new_digital_ocean_droplet_params
+
+          curl -s -o /dev/null -X POST -d token=${{ secrets.CTX_SLACK_NOTIFICATIONS_TOKEN }} -d channel=C092UE0H4 \
+            -d text="<https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID | $GITHUB_REPOSITORY @ $GITHUB_RUN_ID>" \
+            https://slack.com/api/chat.postMessage
