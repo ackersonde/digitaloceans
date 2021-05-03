@@ -34,7 +34,7 @@ jobs:
           envsubst < do_ubuntu_userdata.sh > digitalocean_ubuntu_userdata.sh
 
           mkdir ~/.ssh
-          echo ${{ secrets.CTX_SERVER_DEPLOY_SECRET_B64 }} | base64 -d | tee ~/.ssh/id_ed25519
+          echo ${{ secrets.CTX_SERVER_DEPLOY_SECRET_B64 }} | base64 -d > ~/.ssh/id_ed25519
           chmod 400 ~/.ssh/id_ed25519
 
           ./do -fn=createNewServer -tag=traefik
