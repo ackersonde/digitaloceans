@@ -34,7 +34,7 @@ jobs:
           envsubst < do_ubuntu_userdata.sh > digitalocean_ubuntu_userdata.sh
 
           mkdir ~/.ssh
-          echo -n "$CTX_SERVER_DEPLOY_SECRET_B64" | base64 -d | tee ~/.ssh/id_ed25519
+          echo ${{ secrets.CTX_SERVER_DEPLOY_SECRET_B64 }} | base64 -d | tee ~/.ssh/id_ed25519
           chmod 400 ~/.ssh/id_ed25519
 
           ./do -fn=createNewServer -tag=traefik
@@ -46,11 +46,11 @@ jobs:
           sleep 30 # wait for instance to launch and provide ssh
 
           # prepare SSL certificate
-          ssh -o StrictHostKeyChecking=no root@$NEW_SERVER_IPV4 "\
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 root@$NEW_SERVER_IPV4 "\
             mkdir -p traefik/logs || true"
 
           # deploy traefik to droplet - sleep here is to let cloudinit finish
-          ssh root@$NEW_SERVER_IPV4 "\
+          ssh -i ~/.ssh/id_ed25519 root@$NEW_SERVER_IPV4 "\
             sleep 100 && \
             docker rm -f traefik || true && \
             docker run -d --restart=always \
@@ -83,8 +83,8 @@ jobs:
 
           # add firewall rules for new server (and cut outgoing one)
           envsubst < firewall_rules.sh > fw_rules.sh
-          scp -o StrictHostKeyChecking=no fw_rules.sh root@ackerson.de
-          ssh root@ackerson.de ./fw_rules.sh
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 fw_rules.sh root@ackerson.de
+          ssh -i ~/.ssh/id_ed25519 root@ackerson.de ./fw_rules.sh
 
           ./do -fn=updateDNS -dropletID=$NEW_DROPLET_ID
           ./do -fn=firewallSSH -allow=false -ip=$public_ip_address -keyID=$NEW_SSH_KEY_ID
