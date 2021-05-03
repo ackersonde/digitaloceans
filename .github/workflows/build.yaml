@@ -43,7 +43,7 @@ jobs:
           source /tmp/new_digital_ocean_droplet_params
 
           ./do -fn=firewallSSH -allow=true -ip=$public_ip_address
-          sleep 140 # wait for instance to launch, provide ssh & cloudinit to finish
+          sleep 140 # wait for instance to launch w/ ssh, cloudinit & docker
 
           # prepare SSL certificate
           ssh -o StrictHostKeyChecking=no root@$NEW_SERVER_IPV4 "\
@@ -82,7 +82,7 @@ jobs:
 
           # add firewall rules for new server (and cut outgoing one)
           envsubst < firewall_rules.sh > fw_rules.sh
-          scp -o StrictHostKeyChecking=no fw_rules.sh root@ackerson.de
+          scp -o StrictHostKeyChecking=no fw_rules.sh root@ackerson.de:~/
           ssh root@ackerson.de ./fw_rules.sh
 
           ./do -fn=updateDNS -dropletID=$NEW_DROPLET_ID
