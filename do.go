@@ -40,7 +40,7 @@ func main() {
 		existingDeployDroplet := findExistingDeployDroplet(client, *tagPtr)
 		existingIPv6, _ := existingDeployDroplet.PublicIPv6()
 
-		droplet := createDroplet(client, key, *tagPtr)
+		droplet := createDroplet(client, *tagPtr)
 		waitUntilDropletReady(client, droplet.ID)
 
 		droplet, _, _ = client.Droplets.Get(context.Background(), droplet.ID)
@@ -211,7 +211,7 @@ func createSSHKey(client *godo.Client) *godo.Key {
 	return key
 }
 
-func createDroplet(client *godo.Client, key *godo.Key, tag string) *godo.Droplet {
+func createDroplet(client *godo.Client, tag string) *godo.Droplet {
 	var newDroplet *godo.Droplet
 
 	fingerprint := os.Getenv("CTX_SSH_DEPLOY_FINGERPRINT")
@@ -219,7 +219,6 @@ func createDroplet(client *godo.Client, key *godo.Key, tag string) *godo.Droplet
 
 	sshKeys := []godo.DropletCreateSSHKey{}
 	sshKeys = append(sshKeys, godo.DropletCreateSSHKey{Fingerprint: fingerprint})
-	sshKeys = append(sshKeys, godo.DropletCreateSSHKey{Fingerprint: key.Fingerprint})
 
 	digitaloceanIgnitionJSON, err := ioutil.ReadFile("digitalocean_ubuntu_userdata.sh")
 	if err != nil {

@@ -3,6 +3,7 @@ echo -n "$CTX_SERVER_DEPLOY_CACERT_B64" | base64 -d | tee /root/.ssh/id_ed25519-
 chmod 400 /root/.ssh/id_ed25519-cert.pub
 echo -n "$CTX_SERVER_DEPLOY_SECRET_B64" | base64 -d | tee /root/.ssh/id_ed25519
 chmod 400 /root/.ssh/id_ed25519
+echo -n "$CTX_SERVER_DEPLOY_PUBLIC_B64" | base64 -d | tee -a /root/.ssh/authorized_keys
 
 mkdir /root/traefik
 cat <<EOF >/root/traefik/acme.json
@@ -57,4 +58,5 @@ ip6tables -t nat -A POSTROUTING -s fd00::/80 ! -o docker0 -j MASQUERADE
 mkdir /etc/iptables
 netfilter-persistent save
 
-# docker run -d -p 8080:80 --restart=always --name webtest busybox sh -c 'echo "Hello world!" > index.html && httpd -f -v'
+# TODO: add SSH Cert authentication
+cat >> /root/.ssh/authorized_keys | base64 -d ${{CTX_SERVER_DEPLOY_PUBLIC_B64}}

@@ -22,6 +22,7 @@ jobs:
           CTX_SSH_DEPLOY_FINGERPRINT: ${{ secrets.CTX_SSH_DEPLOY_FINGERPRINT }}
           CTX_SERVER_DEPLOY_CACERT_B64: ${{ secrets.CTX_SERVER_DEPLOY_CACERT_B64 }}
           CTX_SERVER_DEPLOY_SECRET_B64: ${{ secrets.CTX_SERVER_DEPLOY_SECRET_B64 }}
+          CTX_SERVER_DEPLOY_PUBLIC_B64: ${{ secrets.CTX_SERVER_DEPLOY_PUBLIC_B64 }}
           ACME_JSON: ${{ secrets.CTX_ACME_JSON }}
           CTX_BUILD_HOST: ${{ secrets.CTX_IPV6_BUILD_HOME }}
           CTX_MASTER_HOST: ${{ secrets.CTX_IPV6_MASTER_HOME }}
@@ -31,7 +32,11 @@ jobs:
           go build do.go
 
           envsubst < do_ubuntu_userdata.sh > digitalocean_ubuntu_userdata.sh
+
           mkdir ~/.ssh
+          echo -n "$CTX_SERVER_DEPLOY_SECRET_B64" | base64 -d | tee /root/.ssh/id_ed25519
+          chmod 400 /root/.ssh/id_ed25519
+
           ./do -fn=createNewServer -tag=traefik
 
           public_ip_address=$(curl -s https://checkip.amazonaws.com)
@@ -79,8 +84,7 @@ jobs:
           # add firewall rules for new server (and cut outgoing one)
           envsubst < firewall_rules.sh > fw_rules.sh
           scp -o StrictHostKeyChecking=no fw_rules.sh root@ackerson.de
-          cat ~/.ssh/known_hosts
-          ssh -o StrictHostKeyChecking=no root@ackerson.de ./fw_rules.sh
+          ssh root@ackerson.de ./fw_rules.sh
 
           ./do -fn=updateDNS -dropletID=$NEW_DROPLET_ID
           ./do -fn=firewallSSH -allow=false -ip=$public_ip_address -keyID=$NEW_SSH_KEY_ID
@@ -101,7 +105,7 @@ jobs:
             https://api.github.com/repos/ackersonde/telegram-bot/actions/workflows/build.yml/dispatches \
             -d '{"ref":"main"}'
 
-          rm digitalocean_ubuntu_userdata.sh ~/.ssh/id_rsa /tmp/new_digital_ocean_droplet_params
+          rm digitalocean_ubuntu_userdata.sh ~/.ssh/id_ed25519 /tmp/new_digital_ocean_droplet_params
 
           curl -s -o /dev/null -X POST -d token=${{ secrets.CTX_SLACK_NOTIFICATIONS_TOKEN }} -d channel=C092UE0H4 \
             -d text="<https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID | $GITHUB_REPOSITORY @ $GITHUB_RUN_ID>" \
