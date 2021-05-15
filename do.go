@@ -28,7 +28,6 @@ func main() {
 
 	fnPtr := flag.String("fn", "createNewServer|deleteServer|firewallSSH", "which function to run")
 	dropletIDPtr := flag.String("dropletID", "<digitalOceanDropletID>", "DO droplet to attach floatingIP to")
-	keyIDPtr := flag.String("keyID", "<sshKeyID>", "DO droplet sshKey")
 	allowPtr := flag.Bool("allow", false, "so deploying agent can access Droplet")
 	ipPtr := flag.String("ip", "<internet ip addr of github action instance>", "see prev param")
 	tagPtr := flag.String("tag", "dynamic", "tag to add to droplet")
@@ -67,21 +66,14 @@ func main() {
 		}
 	} else if *fnPtr == "deleteServer" {
 		dropletID, _ := strconv.Atoi(*dropletIDPtr)
-		keyID, _ := strconv.Atoi(*keyIDPtr)
 		droplet, _, _ := client.Droplets.Get(context.Background(), dropletID)
-		fmt.Printf("\ndeleting DropletID: %d\n", droplet.ID)
 
-		resp, _ := client.Keys.DeleteByID(context.Background(), keyID)
-		fmt.Printf("Keys.DeleteByID? %s", resp)
-		resp, _ = client.Droplets.Delete(context.Background(), dropletID)
-		fmt.Printf("Droplets.Delete? %s", resp)
+		client.Droplets.Delete(context.Background(), dropletID)
+
+		fmt.Printf("\ndeleted DropletID: %d\n", droplet.ID)
 	} else if *fnPtr == "firewallSSH" {
 		common.ToggleSSHipAddress(*allowPtr, *ipPtr, client)
-		if !*allowPtr {
-			keyID, _ := strconv.Atoi(*keyIDPtr)
-			resp, _ := client.Keys.DeleteByID(context.Background(), keyID)
-			fmt.Printf("Keys.DeleteByID? %s", resp)
-		} else {
+		if *allowPtr {
 			_, err := os.Stat(envFile)
 			if os.IsNotExist(err) {
 				existingDeployDroplet := findExistingDeployDroplet(client, *tagPtr)
