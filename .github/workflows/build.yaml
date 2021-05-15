@@ -82,6 +82,7 @@ jobs:
 
           # add firewall rules for new server (and cut outgoing one)
           envsubst < firewall_rules.sh > fw_rules.sh
+          chmod u+x fw_rules.sh
           scp -o StrictHostKeyChecking=no fw_rules.sh root@ackerson.de:~/
           ssh root@ackerson.de ./fw_rules.sh
 
