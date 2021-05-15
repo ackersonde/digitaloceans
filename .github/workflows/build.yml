@@ -24,9 +24,10 @@ jobs:
           CTX_SERVER_DEPLOY_SECRET_B64: ${{ secrets.CTX_SERVER_DEPLOY_SECRET_B64 }}
           CTX_SERVER_DEPLOY_PUBLIC_B64: ${{ secrets.CTX_SERVER_DEPLOY_PUBLIC_B64 }}
           ACME_JSON: ${{ secrets.CTX_ACME_JSON }}
-          CTX_BUILD_HOST: ${{ secrets.CTX_IPV6_BUILD_HOME }}
           CTX_MASTER_HOST: ${{ secrets.CTX_IPV6_MASTER_HOME }}
+          CTX_BUILD_HOST: ${{ secrets.CTX_IPV6_BUILD_HOME }}
           CTX_SLAVE_HOST: ${{ secrets.CTX_IPV6_SLAVE_HOME }}
+          SERVERS: "ubuntu@$CTX_MASTER_HOST ubuntu@$CTX_SLAVE_HOST ackersond@$CTX_BUILD_HOST"
         run: |
           go get -t -d -v ./...
           go build do.go
@@ -81,13 +82,13 @@ jobs:
               --certificatesResolvers.letsencrypt.acme.dnsChallenge.delayBeforeCheck=5"
 
           # add firewall rules for new server (and cut outgoing one)
-          envsubst < firewall_rules.sh > fw_rules.sh
+          envsubst '${CTX_MASTER_HOST} ${CTX_SLAVE_HOST} ${CTX_BUILD_HOST} ${NEW_SERVER_IPV6} ${OLD_SERVER_IPV6}' < firewall_rules.sh > fw_rules.sh
           scp -o StrictHostKeyChecking=no fw_rules.sh root@ackerson.de:~/
           ssh root@ackerson.de /bin/bash fw_rules.sh
 
           ./do -fn=updateDNS -dropletID=$NEW_DROPLET_ID
           ./do -fn=firewallSSH -allow=false -ip=$public_ip_address
-          #./do -fn=deleteServer -dropletID=$OLD_DROPLET_ID
+          ./do -fn=deleteServer -dropletID=$OLD_DROPLET_ID
           sleep 30 # DNS update above
 
           # kick off deploys of homepage, bender, telegram-bot
