@@ -73,20 +73,6 @@ func main() {
 		fmt.Printf("\ndeleted DropletID: %d\n", droplet.ID)
 	} else if *fnPtr == "firewallSSH" {
 		common.ToggleSSHipAddress(*allowPtr, *ipPtr, client)
-		if *allowPtr {
-			_, err := os.Stat(envFile)
-			if os.IsNotExist(err) {
-				existingDeployDroplet := findExistingDeployDroplet(client, *tagPtr)
-				// Write /tmp/new_digital_ocean_droplet_params
-				envVarsFile := []byte(
-					"export DROPLET_HOST=" + existingDeployDroplet.Name)
-
-				err := ioutil.WriteFile(envFile, envVarsFile, 0644)
-				if err != nil {
-					fmt.Printf("Failed to write %s: %s", envFile, err)
-				}
-			}
-		}
 	} else if *fnPtr == "updateDNS" {
 		dropletID, _ := strconv.Atoi(*dropletIDPtr)
 		droplet, _, _ := client.Droplets.Get(context.Background(), dropletID)

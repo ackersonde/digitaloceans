@@ -40,7 +40,7 @@ func PrepareDigitalOceanLogin() *godo.Client {
 		AccessToken: doPersonalAccessToken,
 	}
 
-	oauthClient := oauth2.NewClient(oauth2.NoContext, tokenSource)
+	oauthClient := oauth2.NewClient(context.TODO(), tokenSource)
 	return godo.NewClient(oauthClient)
 }
 
@@ -52,11 +52,8 @@ func prepareSSHipAddresses() []string {
 	}
 
 	// whitelist UptimeRobot addys
-	uptimeRobotAddresses, err := urlToLines("https://uptimerobot.com/inc/files/ips/IPv4andIPv6.txt")
-	if err != nil {
-		log.Println(err.Error())
-	}
-	ipAddys = append(ipAddys, uptimeRobotAddresses...)
+	// uptimeRobotAddresses, err := urlToLines("https://uptimerobot.com/inc/files/ips/IPv4andIPv6.txt")
+	//ipAddys = append(ipAddys, uptimeRobotAddresses...)
 
 	return ipAddys
 }
@@ -199,15 +196,13 @@ func DropletList(client *godo.Client) ([]godo.Droplet, error) {
 	// create options. initially, these will be blank
 	opt := &godo.ListOptions{}
 	for {
-		droplets, resp, err := client.Droplets.List(oauth2.NoContext, opt)
+		droplets, resp, err := client.Droplets.List(context.TODO(), opt)
 		if err != nil {
 			return nil, err
 		}
 
 		// append the current page's droplets to our list
-		for _, d := range droplets {
-			list = append(list, d)
-		}
+		list = append(list, droplets...)
 
 		// if we are at the last page, break out the for loop
 		if resp.Links == nil || resp.Links.IsLastPage() {
@@ -232,7 +227,7 @@ func DeleteDODroplet(ID int) string {
 
 	client := PrepareDigitalOceanLogin()
 
-	_, err := client.Droplets.Delete(oauth2.NoContext, ID)
+	_, err := client.Droplets.Delete(context.TODO(), ID)
 	if err == nil {
 		result = "Successfully deleted Droplet `" + strconv.Itoa(ID) + "`"
 	} else {
@@ -248,7 +243,7 @@ func DeleteSSHKey(ID int) string {
 
 	client := PrepareDigitalOceanLogin()
 
-	_, err := client.Keys.DeleteByID(oauth2.NoContext, ID)
+	_, err := client.Keys.DeleteByID(context.TODO(), ID)
 	if err == nil {
 		result = "Successfully deleted SSH Key `" + strconv.Itoa(ID) + "`"
 	} else {

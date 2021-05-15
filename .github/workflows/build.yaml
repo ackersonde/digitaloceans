@@ -87,7 +87,7 @@ jobs:
 
           ./do -fn=updateDNS -dropletID=$NEW_DROPLET_ID
           ./do -fn=firewallSSH -allow=false -ip=$public_ip_address
-          ./do -fn=deleteServer -dropletID=$OLD_DROPLET_ID
+          #./do -fn=deleteServer -dropletID=$OLD_DROPLET_ID
           sleep 30 # DNS update above
 
           # kick off deploys of homepage, bender, telegram-bot
