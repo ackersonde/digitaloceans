@@ -34,8 +34,6 @@ func main() {
 	flag.Parse()
 
 	if *fnPtr == "createNewServer" {
-		//key := createSSHKey(client)
-
 		existingDeployDroplet := findExistingDeployDroplet(client, *tagPtr)
 		existingIPv6, _ := existingDeployDroplet.PublicIPv6()
 
