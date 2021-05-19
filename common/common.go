@@ -109,6 +109,19 @@ func ToggleSSHipAddress(add bool, ipAddress string, client *godo.Client) {
 	}
 }
 
+func GetSSHFirewallRules() []string {
+	var sshSources []string
+	client := PrepareDigitalOceanLogin()
+	firewall, _, _ := client.Firewalls.Get(context.TODO(), firewallID)
+	for _, rule := range firewall.InboundRules {
+		if rule.PortRange == "22" {
+			return rule.Sources.Addresses
+		}
+	}
+
+	return sshSources
+}
+
 // UpdateFirewall to maintain connectivity while Telekom rotates IPs
 func UpdateFirewall() {
 	ipAddys := prepareSSHipAddresses()
