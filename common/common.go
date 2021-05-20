@@ -109,13 +109,13 @@ func ToggleSSHipAddress(add bool, ipAddress string, client *godo.Client) {
 	}
 }
 
-func GetSSHFirewallRules() godo.Sources {
-	var sshSources godo.Sources
+func GetSSHFirewallRules() []string {
+	var sshSources []string
 	client := PrepareDigitalOceanLogin()
 	firewall, _, _ := client.Firewalls.Get(context.TODO(), firewallID)
 	for _, rule := range firewall.InboundRules {
 		if rule.PortRange == "22" {
-			return *rule.Sources
+			sshSources = append(sshSources, rule.Sources.Addresses...)
 		}
 	}
 
