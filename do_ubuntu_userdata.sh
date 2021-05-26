@@ -26,13 +26,10 @@ echo unattended-upgrades unattended-upgrades/enable_auto_updates boolean true | 
 dpkg-reconfigure -f noninteractive unattended-upgrades
 
 cat > /etc/apt/apt.conf.d/50unattended-upgrades << EOF
-// Automatically upgrade packages from these (origin, archive) pairs
-    Unattended-Upgrade::Allowed-Origins {
-        // ${distro_id} and ${distro_codename} will be automatically expanded
+Unattended-Upgrade::Allowed-Origins {
     "${distro_id} stable";
     "${distro_id} ${distro_codename}-security";
     "${distro_id} ${distro_codename}-updates";
-//  "${distro_id} ${distro_codename}-proposed-updates";
 };
 
 // Do automatic removal of new unused dependencies after the upgrade

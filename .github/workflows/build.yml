@@ -32,7 +32,7 @@ jobs:
           go get -t -d -v ./...
           go build do.go
 
-          envsubst < do_ubuntu_userdata.sh > digitalocean_ubuntu_userdata.sh
+          envsubst TODO list vars to replace here! < do_ubuntu_userdata.sh > digitalocean_ubuntu_userdata.sh
 
           mkdir ~/.ssh
           echo ${{ secrets.CTX_SERVER_DEPLOY_SECRET_B64 }} | base64 -d > ~/.ssh/id_ed25519
