@@ -100,7 +100,7 @@ func updateDNS(client *godo.Client, ipAddr string, hostname string, domainID int
 	if err != nil {
 		log.Printf("unable to updateDNS for %s: %s", hostname, err.Error())
 	}
-	fmt.Printf("current DNS %s: %s => %s\n", record.Name, record.Type, record.Data)
+	//fmt.Printf("current DNS %s: %s => %s\n", record.Name, record.Type, record.Data)
 
 	editRequest := &godo.DomainRecordEditRequest{
 		Type: record.Type,
