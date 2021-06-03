@@ -46,7 +46,7 @@ jobs:
           source /tmp/new_digital_ocean_droplet_params
 
           ./do -fn=firewallSSH -allow=true -ip=$public_ip_address
-          sleep 140 # wait for instance to launch w/ ssh, cloudinit & docker
+          sleep 90 # wait for instance to launch w/ ssh, cloudinit & docker
 
           # prepare Traefik directory
           ssh -o StrictHostKeyChecking=no root@$NEW_SERVER_IPV4 "\
