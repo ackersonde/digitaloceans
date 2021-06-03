@@ -205,7 +205,7 @@ func createDroplet(client *godo.Client, tag string) *godo.Droplet {
 			Region: "fra1",
 			Size:   "s-1vcpu-1gb-amd",
 			Image: godo.DropletCreateImage{
-				Slug: "ubuntu-20-10-x64",
+				Slug: "ubuntu-21-04-x64",
 			},
 			IPv6:       true,
 			Monitoring: true,
