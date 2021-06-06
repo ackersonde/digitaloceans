@@ -27,9 +27,9 @@ dpkg-reconfigure -f noninteractive unattended-upgrades
 
 cat > /etc/apt/apt.conf.d/50unattended-upgrades << EOF
 Unattended-Upgrade::Allowed-Origins {
-    "${distro_id} stable";
-    "${distro_id} ${distro_codename}-security";
-    "${distro_id} ${distro_codename}-updates";
+    "\${distro_id} stable";
+    "\${distro_id} \${distro_codename}-security";
+    "\${distro_id} \${distro_codename}-updates";
 };
 
 // Do automatic removal of new unused dependencies after the upgrade
