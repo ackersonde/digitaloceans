@@ -16,14 +16,31 @@ touch ~/.hushlogin
 echo "deb https://repos.insights.digitalocean.com/apt/do-agent/ main main" > /etc/apt/sources.list.d/digitalocean-agent.list
 curl -fsSL https://repos.insights.digitalocean.com/sonar-agent.asc | apt-key add -
 
+# prepare iptables persistence and unattended-upgrades install settings
+debconf-set-selections <<EOF
+iptables-persistent iptables-persistent/autosave_v4 boolean true
+iptables-persistent iptables-persistent/autosave_v6 boolean true
+unattended-upgrades unattended-upgrades/enable_auto_updates boolean true
+EOF
+
+# allow docker containers to talk to the internet
+ip6tables -t nat -A POSTROUTING -s fd00::/80 ! -o docker0 -j MASQUERADE
+dpkg-reconfigure -f noninteractive unattended-upgrades
+
 apt-get update
-apt-get -y install docker.io do-agent netfilter-persistent
+apt-get -y install docker.io do-agent iptables-persistent
 
 systemctl start docker
 systemctl enable docker
 
-echo unattended-upgrades unattended-upgrades/enable_auto_updates boolean true | debconf-set-selections
-dpkg-reconfigure -f noninteractive unattended-upgrades
+# setup ipv6 capability in docker
+cat > /etc/docker/daemon.json <<EOF
+{
+  "ipv6": true,
+  "fixed-cidr-v6": "fd00::/80"
+}
+EOF
+systemctl restart docker
 
 cat > /etc/apt/apt.conf.d/50unattended-upgrades << EOF
 Unattended-Upgrade::Allowed-Origins {
@@ -40,17 +57,3 @@ Unattended-Upgrade::Remove-Unused-Dependencies "true";
 // the file /var/run/reboot-required is found after the upgrade
 Unattended-Upgrade::Automatic-Reboot "true";
 EOF
-
-
-# setup ipv6 capability
-cat > /etc/docker/daemon.json <<EOF
-{
-  "ipv6": true,
-  "fixed-cidr-v6": "fd00::/80"
-}
-EOF
-systemctl restart docker
-
-ip6tables -t nat -A POSTROUTING -s fd00::/80 ! -o docker0 -j MASQUERADE
-mkdir /etc/iptables
-netfilter-persistent save
