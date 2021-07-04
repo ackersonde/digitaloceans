@@ -5,11 +5,26 @@ echo -n "$CTX_SERVER_DEPLOY_SECRET_B64" | base64 -d | tee /root/.ssh/id_ed25519
 chmod 400 /root/.ssh/id_ed25519
 echo -n "$CTX_SERVER_DEPLOY_PUBLIC_B64" | base64 -d | tee -a /root/.ssh/authorized_keys
 
+# *.ackerson.de SSL cert
 mkdir /root/traefik
 cat <<EOF >/root/traefik/acme.json
 $ACME_JSON
 EOF
 chmod 600 /root/traefik/acme.json
+
+# Setup Syncthing config
+mkdir -p /root/syncthing/config /root/syncthing/2086h-4d0t2
+echo -n "$SYNCTHING_CONFIG" | base64 -d | tee -a /root/syncthing/config/config.xml
+chmod 600 /root/syncthing/config/config.xml
+cat <<EOF > /root/syncthing/config/key.pem
+$SYNCTHING_KEY
+EOF
+chmod 600 /root/syncthing/config/key.pem
+cat <<EOF > /root/syncthing/config/cert.pem
+$SYNCTHING_CERT
+EOF
+chmod 644 /root/syncthing/config/cert.pem
+
 touch ~/.hushlogin
 
 # Setup Advanced DO monitoring
