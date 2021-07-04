@@ -24,6 +24,7 @@ cat <<EOF > /root/syncthing/config/cert.pem
 $SYNCTHING_CERT
 EOF
 chmod 644 /root/syncthing/config/cert.pem
+chown -R 1000:1000 /root/syncthing
 
 touch ~/.hushlogin
 

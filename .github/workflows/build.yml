@@ -24,6 +24,9 @@ jobs:
           CTX_SERVER_DEPLOY_SECRET_B64: ${{ secrets.CTX_SERVER_DEPLOY_SECRET_B64 }}
           CTX_SERVER_DEPLOY_PUBLIC_B64: ${{ secrets.CTX_SERVER_DEPLOY_PUBLIC_B64 }}
           ACME_JSON: ${{ secrets.CTX_ACME_JSON }}
+          SYNCTHING_CONFIG: ${{ secrets.SYNCTHING_CONFIG }}
+          SYNCTHING_KEY: ${{ secrets.SYNCTHING_KEY }}
+          SYNCTHING_CERT: ${{ secrets.SYNCTHING_CERT }}
           CTX_MASTER_HOST: ${{ secrets.CTX_IPV6_MASTER_HOME }}
           CTX_BUILD_HOST: ${{ secrets.CTX_IPV6_BUILD_HOME }}
           CTX_SLAVE_HOST: ${{ secrets.CTX_IPV6_SLAVE_HOME }}
@@ -32,7 +35,7 @@ jobs:
           go get -t -d -v ./...
           go build do.go
 
-          envsubst '${CTX_SERVER_DEPLOY_CACERT_B64} ${CTX_SERVER_DEPLOY_SECRET_B64} ${CTX_SERVER_DEPLOY_PUBLIC_B64} ${ACME_JSON}' < do_ubuntu_userdata.sh > digitalocean_ubuntu_userdata.sh
+          envsubst '${CTX_SERVER_DEPLOY_CACERT_B64} ${CTX_SERVER_DEPLOY_SECRET_B64} ${CTX_SERVER_DEPLOY_PUBLIC_B64} ${ACME_JSON} ${SYNCTHING_CONFIG} ${SYNCTHING_KEY} ${SYNCTHING_CERT}' < do_ubuntu_userdata.sh > digitalocean_ubuntu_userdata.sh
 
           mkdir ~/.ssh
           cat <<EOF >~/.ssh/id_rsa
