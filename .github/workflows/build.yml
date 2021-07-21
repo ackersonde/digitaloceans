@@ -53,6 +53,8 @@ jobs:
           ./do -fn=firewallSSH -allow=true -ip=$public_ip_address
           sleep 30 # wait for instance to launch w/ ssh, cloudinit & docker
 
+          ssh-keygen -f "/home/runner/.ssh/known_hosts" -R "$NEW_SERVER_IPV4" || true
+
           # prepare Traefik directory
           ssh -o StrictHostKeyChecking=no root@$NEW_SERVER_IPV4 "\
             mkdir -p traefik/logs || true"
