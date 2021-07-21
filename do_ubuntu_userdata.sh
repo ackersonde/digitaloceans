@@ -1,4 +1,5 @@
 #!/bin/bash
+rm /etc/ssh/ssh_host_*
 echo -n "$CTX_ACKDE_HOST_SSH_KEY_PRIV_B64" | base64 -d | tee /etc/ssh/ssh_host_ecdsa_key
 chmod 600 /etc/ssh/ssh_host_ecdsa_key
 echo -n "$CTX_ACKDE_HOST_SSH_KEY_PUB_B64" | base64 -d | tee /etc/ssh/ssh_host_ecdsa_key.pub

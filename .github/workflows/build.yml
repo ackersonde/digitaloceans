@@ -51,7 +51,7 @@ jobs:
           source /tmp/new_digital_ocean_droplet_params
 
           ./do -fn=firewallSSH -allow=true -ip=$public_ip_address
-          sleep 90 # wait for instance to launch w/ ssh, cloudinit & docker
+          sleep 30 # wait for instance to launch w/ ssh, cloudinit & docker
 
           # prepare Traefik directory
           ssh -o StrictHostKeyChecking=no root@$NEW_SERVER_IPV4 "\
@@ -61,6 +61,10 @@ jobs:
 
           # deploy traefik to droplet - sleep here is to let cloudinit finish
           ssh root@$NEW_SERVER_IPV4 "\
+            # Block until cloud-init completes
+            cloud-init status --wait  > /dev/null 2>&1
+            [ $? -ne 0 ] && echo 'Cloud-init failed' && exit 1
+            echo 'Cloud-init succeeded at ' `date -R`  > /home/ubuntu/post-cloud-init.log
             docker rm -f traefik || true && \
             docker run -d --restart=always \
               -e DO_AUTH_TOKEN=${{ secrets.CTX_DIGITALOCEAN_DNS_TOKEN }} \
