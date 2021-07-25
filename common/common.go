@@ -251,10 +251,8 @@ func DeleteDODroplet(ID int) string {
 }
 
 // DeleteSSHKey more here https://developers.digitalocean.com/documentation/v2/#delete-a-key
-func DeleteSSHKey(ID int) string {
+func DeleteSSHKey(ID int, client *godo.Client) string {
 	var result string
-
-	client := PrepareDigitalOceanLogin()
 
 	_, err := client.Keys.DeleteByID(context.TODO(), ID)
 	if err == nil {

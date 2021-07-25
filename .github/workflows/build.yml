@@ -40,18 +40,13 @@ jobs:
           envsubst '${CTX_ACKDE_HOST_SSH_KEY_PRIV_B64} ${CTX_ACKDE_HOST_SSH_KEY_PUB_B64} ${CTX_SERVER_DEPLOY_CACERT_B64} ${CTX_SERVER_DEPLOY_SECRET_B64} ${CTX_SERVER_DEPLOY_PUBLIC_B64} ${ACME_JSON} ${SYNCTHING_CONFIG} ${SYNCTHING_KEY} ${SYNCTHING_CERT}' < do_ubuntu_userdata.sh > digitalocean_ubuntu_userdata.sh
 
           mkdir ~/.ssh
-          cat <<EOF >~/.ssh/id_rsa
-          ${{ secrets.CTX_DIGITALOCEAN_SSH_PRIVKEY }}
-          EOF
-          chmod 400 ~/.ssh/id_rsa
-
           ./do -fn=createNewServer -tag=traefik
 
           public_ip_address=$(curl -s https://checkip.amazonaws.com)
           source /tmp/new_digital_ocean_droplet_params
 
           ./do -fn=firewallSSH -allow=true -ip=$public_ip_address
-          sleep 30 # wait for instance to launch w/ ssh, cloudinit & docker
+          sleep 30 # wait for instance to launch w/ ssh
 
           ssh-keygen -f "/home/runner/.ssh/known_hosts" -R "$NEW_SERVER_IPV4" || true
 
@@ -115,6 +110,7 @@ jobs:
           ./do -fn=updateDNS -dropletID=$NEW_DROPLET_ID
           ./do -fn=firewallSSH -allow=false -ip=$public_ip_address
           ./do -fn=deleteServer -dropletID=$OLD_DROPLET_ID
+          ./do -fn=deleteSSHKey -sshKeyID=$DEPLOY_KEY_ID
           sleep 30 # DNS update above
 
           # kick off deploys of homepage, bender, telegram-bot

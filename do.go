@@ -26,8 +26,9 @@ var envFile = "/tmp/new_digital_ocean_droplet_params"
 func main() {
 	client := common.PrepareDigitalOceanLogin()
 
-	fnPtr := flag.String("fn", "createNewServer|deleteServer|firewallSSH", "which function to run")
+	fnPtr := flag.String("fn", "createNewServer|deleteServer|firewallSSH|deleteSSHKey", "which function to run")
 	dropletIDPtr := flag.String("dropletID", "<digitalOceanDropletID>", "DO droplet to attach floatingIP to")
+	sshKeyPtr := flag.String("sshKeyID", "<digitalOceanSSHKeyID>", "DO ssh key ID")
 	allowPtr := flag.Bool("allow", false, "so deploying agent can access Droplet")
 	ipPtr := flag.String("ip", "<internet ip addr of github action instance>", "see prev param")
 	tagPtr := flag.String("tag", "dynamic", "tag to add to droplet")
@@ -37,10 +38,8 @@ func main() {
 		existingDeployDroplet := findExistingDeployDroplet(client, *tagPtr)
 		existingIPv6, _ := existingDeployDroplet.PublicIPv6()
 
-		droplet := createDroplet(client, *tagPtr)
+		droplet, sshKeyID := createDroplet(client, *tagPtr)
 		waitUntilDropletReady(client, droplet.ID)
-
-		droplet, _, _ = client.Droplets.Get(context.Background(), droplet.ID)
 		ipv4, _ := droplet.PublicIPv4()
 		ipv6, _ := droplet.PublicIPv6()
 
@@ -48,6 +47,7 @@ func main() {
 		envVarsFile := []byte(
 			"export NEW_SERVER_IPV4=" + ipv4 +
 				"\nexport NEW_SERVER_IPV6=" + ipv6 +
+				"\nexport DEPLOY_KEY_ID=" + sshKeyID +
 				"\nexport NEW_DROPLET_ID=" + strconv.Itoa(droplet.ID) +
 				"\nexport OLD_DROPLET_ID=" + strconv.Itoa(existingDeployDroplet.ID) +
 				"\nexport OLD_SERVER_IPV6=" + existingIPv6)
@@ -71,6 +71,13 @@ func main() {
 		fmt.Printf("\ndeleted DropletID: %d\n", droplet.ID)
 	} else if *fnPtr == "firewallSSH" {
 		common.ToggleSSHipAddress(*allowPtr, *ipPtr, client)
+	} else if *fnPtr == "deleteSSHKey" {
+		sshKeyID, err := strconv.Atoi(*sshKeyPtr)
+		if err != nil {
+			fmt.Printf("Failed to convert sshKeyID: %s", err)
+		} else {
+			common.DeleteSSHKey(sshKeyID, client)
+		}
 	} else if *fnPtr == "updateDNS" {
 		dropletID, _ := strconv.Atoi(*dropletIDPtr)
 		droplet, _, _ := client.Droplets.Get(context.Background(), dropletID)
@@ -184,14 +191,15 @@ func createSSHKey(client *godo.Client) *godo.Key {
 	return key
 }
 
-func createDroplet(client *godo.Client, tag string) *godo.Droplet {
+func createDroplet(client *godo.Client, tag string) (*godo.Droplet, string) {
 	var newDroplet *godo.Droplet
 
-	fingerprint := os.Getenv("CTX_SSH_DEPLOY_FINGERPRINT")
+	//fingerprint := os.Getenv("CTX_SSH_DEPLOY_FINGERPRINT")
 	dropletName := "b" + githubBuild + ".ackerson.de"
 
+	deploymentKey := createSSHKey(client)
 	sshKeys := []godo.DropletCreateSSHKey{}
-	sshKeys = append(sshKeys, godo.DropletCreateSSHKey{Fingerprint: fingerprint})
+	sshKeys = append(sshKeys, godo.DropletCreateSSHKey{Fingerprint: deploymentKey.Fingerprint})
 
 	digitaloceanIgnitionJSON, err := ioutil.ReadFile("digitalocean_ubuntu_userdata.sh")
 	if err != nil {
@@ -217,9 +225,9 @@ func createDroplet(client *godo.Client, tag string) *godo.Droplet {
 		newDroplet, _, err = client.Droplets.Create(context.Background(), createRequest)
 		if err != nil {
 			fmt.Printf("\nUnexpected ERROR: %s\n\n", err)
-			os.Exit(1)
+			fmt.Printf("Deleted ssh key: %s", common.DeleteSSHKey(deploymentKey.ID, client))
 		}
 	}
 
-	return newDroplet
+	return newDroplet, string(deploymentKey.ID)
 }
