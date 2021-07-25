@@ -40,6 +40,9 @@ func main() {
 
 		droplet, sshKeyID := createDroplet(client, *tagPtr)
 		waitUntilDropletReady(client, droplet.ID)
+
+		// now that Droplet is READY, get IP addresses
+		droplet, _, _ = client.Droplets.Get(context.Background(), droplet.ID)
 		ipv4, _ := droplet.PublicIPv4()
 		ipv6, _ := droplet.PublicIPv6()
 
@@ -229,5 +232,5 @@ func createDroplet(client *godo.Client, tag string) (*godo.Droplet, string) {
 		}
 	}
 
-	return newDroplet, string(deploymentKey.ID)
+	return newDroplet, strconv.Itoa(deploymentKey.ID)
 }
