@@ -20,6 +20,7 @@ import (
 	"golang.org/x/net/context"
 )
 
+var sshPrivateKeyFilePath = "/home/runner/.ssh/id_rsa"
 var githubBuild = os.Getenv("GITHUB_RUN_ID")
 var envFile = "/tmp/new_digital_ocean_droplet_params"
 
@@ -147,17 +148,6 @@ func waitUntilDropletReady(client *godo.Client, dropletID int) {
 	}
 }
 
-func reassignFloatingIP(client *godo.Client, droplet *godo.Droplet) {
-	client.FloatingIPActions.Unassign(context.Background(), common.FloatingIPAddress)
-
-	_, _, err := client.FloatingIPActions.Assign(context.Background(), common.FloatingIPAddress, droplet.ID)
-	for err != nil {
-		fmt.Printf("WARN: %s\n", err.Error())
-		time.Sleep(5 * time.Second)
-		_, _, err = client.FloatingIPActions.Assign(context.Background(), common.FloatingIPAddress, droplet.ID)
-	}
-}
-
 func createSSHKey(client *godo.Client) *godo.Key {
 	privateKeyPair, err := rsa.GenerateKey(rand.Reader, 4096)
 	if err != nil {
@@ -185,9 +175,9 @@ func createSSHKey(client *godo.Client) *godo.Key {
 				Bytes: x509.MarshalPKCS1PrivateKey(privateKeyPair),
 			},
 		)
-		err := ioutil.WriteFile("/home/runner/.ssh/id_rsa", pemdata, 0400)
+		err := ioutil.WriteFile(sshPrivateKeyFilePath, pemdata, 0400)
 		if err != nil {
-			fmt.Printf("Failed to write /home/runner/.ssh/id_rsa: %s", err)
+			fmt.Printf("Failed to write %s: %s", sshPrivateKeyFilePath, err.Error())
 		}
 	}
 

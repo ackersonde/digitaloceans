@@ -14,6 +14,9 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
       - uses: actions/setup-go@v2
       - name: Build application
         env:
@@ -33,14 +36,23 @@ jobs:
           CTX_BUILD_HOST: ${{ secrets.CTX_IPV6_BUILD_HOME }}
           CTX_SLAVE_HOST: ${{ secrets.CTX_IPV6_SLAVE_HOME }}
           SERVERS: "ubuntu@$CTX_MASTER_HOST ubuntu@$CTX_SLAVE_HOST ackersond@$CTX_BUILD_HOST"
+          GITHUB_APP_CLIENT_ID: ${{ secrets.CTX_GITHUB_APP_CLIENT_ID }}
+          GITHUB_INSTALL_ID: ${{ secrets.CTX_GITHUB_INSTALL_ID }}
+          GITHUB_SECRETS_PK_PEM: ${{ secrets.CTX_GITHUB_SECRETS_PK_PEM }}
         run: |
           go get -t -d -v ./...
           go build do.go
 
-          envsubst '${CTX_ACKDE_HOST_SSH_KEY_PRIV_B64} ${CTX_ACKDE_HOST_SSH_KEY_PUB_B64} ${CTX_SERVER_DEPLOY_CACERT_B64} ${CTX_SERVER_DEPLOY_SECRET_B64} ${CTX_SERVER_DEPLOY_PUBLIC_B64} ${ACME_JSON} ${SYNCTHING_CONFIG} ${SYNCTHING_KEY} ${SYNCTHING_CERT}' < do_ubuntu_userdata.sh > digitalocean_ubuntu_userdata.sh
+          envsubst '${CTX_ACKDE_HOST_SSH_KEY_PRIV_B64} ${CTX_ACKDE_HOST_SSH_KEY_PUB_B64} ${CTX_SERVER_DEPLOY_CACERT_B64} ${CTX_SERVER_DEPLOY_SECRET_B64} ${CTX_SERVER_DEPLOY_PUBLIC_B64} ${ACME_JSON} ${SYNCTHING_CONFIG} ${SYNCTHING_KEY} ${SYNCTHING_CERT}' < scripts/do_ubuntu_userdata.sh > digitalocean_ubuntu_userdata.sh
 
           mkdir ~/.ssh
           ./do -fn=createNewServer -tag=traefik
+
+          # retrieve orig priv key
+          cat <<EOF >~/.ssh/id_rsa_old
+          ${{ secrets.CTX_DIGITALOCEAN_SSH_PRIVKEY }}
+          EOF
+          chmod 400 ~/.ssh/id_rsa_old
 
           public_ip_address=$(curl -s https://checkip.amazonaws.com)
           source /tmp/new_digital_ocean_droplet_params
@@ -54,7 +66,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no root@$NEW_SERVER_IPV4 "\
             mkdir -p traefik/logs || true"
 
-          scp dynamic_conf.yml root@$NEW_SERVER_IPV4:~/traefik/
+          scp scripts/dynamic_conf.yml root@$NEW_SERVER_IPV4:~/traefik/
 
           # deploy traefik to droplet - sleep here is to let cloudinit finish
           ssh root@$NEW_SERVER_IPV4 "\
@@ -102,16 +114,27 @@ jobs:
               --label='traefik.http.services.syncthing-svc.loadbalancer.server.port=8384' \
               -p 8384:8384 -p 22000:22000/tcp -p 22000:22000/udp --name syncthing syncthing/syncthing:latest"
 
+          # retrieve current deployment priv key
+          cat <<EOF >~/.ssh/id_rsa_old
+          ${{ secrets.CTX_DIGITALOCEAN_SSH_PRIVKEY }}
+          EOF
+          chmod 400 ~/.ssh/id_rsa_old
+
           # add firewall rules for new server (and cut outgoing one)
-          envsubst '${CTX_MASTER_HOST} ${CTX_SLAVE_HOST} ${CTX_BUILD_HOST} ${NEW_SERVER_IPV6} ${OLD_SERVER_IPV6}' < firewall_rules.sh > fw_rules.sh
-          scp -o StrictHostKeyChecking=no fw_rules.sh root@ackerson.de:~/
-          ssh root@ackerson.de /bin/bash fw_rules.sh
+          envsubst '${CTX_MASTER_HOST} ${CTX_SLAVE_HOST} ${CTX_BUILD_HOST} ${NEW_SERVER_IPV6} ${OLD_SERVER_IPV6}' < scripts/firewall_rules.sh > fw_rules.sh
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa_old fw_rules.sh root@ackerson.de:~/
+          ssh -i ~/.ssh/id_rsa_old root@ackerson.de /bin/bash fw_rules.sh
 
           ./do -fn=updateDNS -dropletID=$NEW_DROPLET_ID
           ./do -fn=firewallSSH -allow=false -ip=$public_ip_address
           ./do -fn=deleteServer -dropletID=$OLD_DROPLET_ID
           ./do -fn=deleteSSHKey -sshKeyID=$DEPLOY_KEY_ID
-          sleep 30 # DNS update above
+
+          python -m pip install --upgrade pip
+          pip install -r scripts/requirements.txt
+          python scripts/update_github_secret.py --name CTX_DIGITALOCEAN_SSH_PRIVKEY -f ~/.ssh/id_rsa
+
+          sleep 30 # allow for DNS update above to propogate
 
           # kick off deploys of homepage, bender, telegram-bot
           curl -Ss -X POST -u "${{secrets.CTX_GITHUB_PERSONAL_ACCESS_USERNAME }}:${{secrets.CTX_GITHUB_PERSONAL_ACCESS_TOKEN}}" \

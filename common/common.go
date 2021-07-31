@@ -1,12 +1,9 @@
 package common
 
 import (
-	"bufio"
 	"context"
-	"io"
 	"log"
 	"net"
-	"net/http"
 	"os"
 	"strconv"
 	"time"
@@ -51,33 +48,7 @@ func prepareSSHipAddresses() []string {
 		ipAddys = append(ipAddys, ipAddr.String())
 	}
 
-	// whitelist UptimeRobot addys
-	// uptimeRobotAddresses, err := urlToLines("https://uptimerobot.com/inc/files/ips/IPv4andIPv6.txt")
-	//ipAddys = append(ipAddys, uptimeRobotAddresses...)
-
 	return ipAddys
-}
-
-func urlToLines(url string) ([]string, error) {
-	resp, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	return linesFromReader(resp.Body)
-}
-
-func linesFromReader(r io.Reader) ([]string, error) {
-	var lines []string
-	scanner := bufio.NewScanner(r)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-	if err := scanner.Err(); err != nil {
-		return nil, err
-	}
-
-	return lines, nil
 }
 
 // ToggleSSHipAddress adds/removes an IP address on the FW rule
