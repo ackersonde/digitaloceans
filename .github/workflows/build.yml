@@ -45,14 +45,8 @@ jobs:
 
           envsubst '${CTX_ACKDE_HOST_SSH_KEY_PRIV_B64} ${CTX_ACKDE_HOST_SSH_KEY_PUB_B64} ${CTX_SERVER_DEPLOY_CACERT_B64} ${CTX_SERVER_DEPLOY_SECRET_B64} ${CTX_SERVER_DEPLOY_PUBLIC_B64} ${ACME_JSON} ${SYNCTHING_CONFIG} ${SYNCTHING_KEY} ${SYNCTHING_CERT}' < scripts/do_ubuntu_userdata.sh > digitalocean_ubuntu_userdata.sh
 
-          mkdir ~/.ssh
+          mkdir ~/.ssh # for new RSA key created in next step
           ./do -fn=createNewServer -tag=traefik
-
-          # retrieve orig priv key
-          cat <<EOF >~/.ssh/id_rsa_old
-          ${{ secrets.CTX_DIGITALOCEAN_SSH_PRIVKEY }}
-          EOF
-          chmod 400 ~/.ssh/id_rsa_old
 
           public_ip_address=$(curl -s https://checkip.amazonaws.com)
           source /tmp/new_digital_ocean_droplet_params
@@ -114,6 +108,7 @@ jobs:
               --label='traefik.http.services.syncthing-svc.loadbalancer.server.port=8384' \
               -p 8384:8384 -p 22000:22000/tcp -p 22000:22000/udp --name syncthing syncthing/syncthing:latest"
 
+          # New server is up and running - Now prepare the old one for death
           # retrieve current deployment priv key
           cat <<EOF >~/.ssh/id_rsa_old
           ${{ secrets.CTX_DIGITALOCEAN_SSH_PRIVKEY }}
@@ -130,13 +125,12 @@ jobs:
           ./do -fn=deleteServer -dropletID=$OLD_DROPLET_ID
           ./do -fn=deleteSSHKey -sshKeyID=$DEPLOY_KEY_ID
 
+          # update PRIVKEY to new one for subsequent deployments
           python -m pip install --upgrade pip
           pip install -r scripts/requirements.txt
           python scripts/update_github_secret.py --name CTX_DIGITALOCEAN_SSH_PRIVKEY -f ~/.ssh/id_rsa
 
-          sleep 30 # allow for DNS update above to propogate
-
-          # kick off deploys of homepage, bender, telegram-bot
+          # Deploy homepage, bender, telegram-bot to new server
           curl -Ss -X POST -u "${{secrets.CTX_GITHUB_PERSONAL_ACCESS_USERNAME }}:${{secrets.CTX_GITHUB_PERSONAL_ACCESS_TOKEN}}" \
             -H "Accept: application/vnd.github.v3+json" \
             https://api.github.com/repos/ackersonde/ackerson.de-go/actions/workflows/build.yml/dispatches \
