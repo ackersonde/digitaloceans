@@ -61,6 +61,9 @@ jobs:
             [ $? -ne 0 ] && echo 'Cloud-init failed' && exit 1
             echo 'Cloud-init succeeded at ' `date -R`  > ~/post-cloud-init.log"
 
+          # Cloud-init setup new host keys - let's ditch the orig ones
+          ssh-keygen -f "/home/runner/.ssh/known_hosts" -R $NEW_SERVER_IPV4
+
           scp -o StrictHostKeyChecking=no scripts/dynamic_conf.yml root@$NEW_SERVER_IPV4:~/traefik/
 
           # New server is up and running - prepare the old one for death
