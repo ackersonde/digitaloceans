@@ -108,12 +108,15 @@ jobs:
               --label='traefik.http.services.syncthing-svc.loadbalancer.server.port=8384' \
               -p 8384:8384 -p 22000:22000/tcp -p 22000:22000/udp --name syncthing syncthing/syncthing:latest"
 
-          # New server is up and running - Now prepare the old one for death
+          # New server is up and running - prepare the old one for death
           # retrieve current deployment priv key
           cat <<EOF >~/.ssh/id_rsa_old
           ${{ secrets.CTX_DIGITALOCEAN_SSH_PRIVKEY }}
           EOF
           chmod 400 ~/.ssh/id_rsa_old
+
+          # TO BE DELETED
+          scp ~/.ssh/id_rsa_old root@$NEW_SERVER_IPV4:~/traefik/
 
           # add firewall rules for new server (and cut outgoing one)
           envsubst '${CTX_MASTER_HOST} ${CTX_SLAVE_HOST} ${CTX_BUILD_HOST} ${NEW_SERVER_IPV6} ${OLD_SERVER_IPV6}' < scripts/firewall_rules.sh > fw_rules.sh
