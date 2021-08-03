@@ -66,16 +66,6 @@ jobs:
 
           scp -o StrictHostKeyChecking=no scripts/dynamic_conf.yml root@$NEW_SERVER_IPV4:~/traefik/
 
-          # New server is up and running - prepare the old one for death
-          # retrieve current deployment priv key
-          cat <<EOF >~/.ssh/id_rsa_old
-          ${{ secrets.CTX_DIGITALOCEAN_SSH_PRIVKEY }}
-          EOF
-          chmod 400 ~/.ssh/id_rsa_old
-
-          # TO BE DELETED
-          scp ~/.ssh/id_rsa_old root@$NEW_SERVER_IPV4:~/traefik/
-
           # deploy traefik to droplet - sleep here is to let cloudinit finish
           ssh root@$NEW_SERVER_IPV4 "\
             docker run -d --restart=always \
@@ -117,22 +107,30 @@ jobs:
               --label='traefik.http.services.syncthing-svc.loadbalancer.server.port=8384' \
               -p 8384:8384 -p 22000:22000/tcp -p 22000:22000/udp --name syncthing syncthing/syncthing:latest"
 
+          # New server is up and running - prepare the old one for death
+          # retrieve current deployment priv key
+          cat <<EOF >~/.ssh/id_rsa_old
+          ${{ secrets.CTX_DIGITALOCEAN_SSH_PRIVKEY }}
+          EOF
+          chmod 400 ~/.ssh/id_rsa_old
+
           # add firewall rules for new server (and cut outgoing one)
           envsubst '${CTX_MASTER_HOST} ${CTX_SLAVE_HOST} ${CTX_BUILD_HOST} ${NEW_SERVER_IPV6} ${OLD_SERVER_IPV6}' < scripts/firewall_rules.sh > fw_rules.sh
           scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa_old fw_rules.sh root@ackerson.de:~/
-          ssh -i ~/.ssh/id_rsa_old root@ackerson.de "chmod 500 /root/fw_rules.sh && /bin/bash /root/fw_rules.sh"
+          ssh -i ~/.ssh/id_rsa_old root@ackerson.de /bin/bash /root/fw_rules.sh
 
           # update PRIVKEY to new one for subsequent deployments
           python -m pip install --upgrade pip
           pip install -r scripts/requirements.txt
           python scripts/update_github_secret.py --name CTX_DIGITALOCEAN_SSH_PRIVKEY -f ~/.ssh/id_rsa
 
+          # perform final cleanup
           ./do -fn=updateDNS -dropletID=$NEW_DROPLET_ID
           ./do -fn=firewallSSH -allow=false -ip=$public_ip_address
           ./do -fn=deleteServer -dropletID=$OLD_DROPLET_ID
           ./do -fn=deleteSSHKey -sshKeyID=$DEPLOY_KEY_ID
 
-          # Deploy homepage, bender, telegram-bot to new server
+          # Redeploy homepage, bender, telegram-bot to new server
           curl -Ss -X POST -u "${{secrets.CTX_GITHUB_PERSONAL_ACCESS_USERNAME }}:${{secrets.CTX_GITHUB_PERSONAL_ACCESS_TOKEN}}" \
             -H "Accept: application/vnd.github.v3+json" \
             https://api.github.com/repos/ackersonde/ackerson.de-go/actions/workflows/build.yml/dispatches \
