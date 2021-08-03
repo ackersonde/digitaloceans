@@ -48,7 +48,7 @@ def encrypt(public_key: str, secret_value: str) -> str:
     return base64.b64encode(encrypted).decode("utf-8")
 
 
-def update_github_secret(token_headers: dict, github_JSON: dict, args: SimpleNamespace):
+def update_secret(token_headers: dict, github_JSON: dict, args: SimpleNamespace):
     secret_name = args.name
     b64encode = args.base64
 
