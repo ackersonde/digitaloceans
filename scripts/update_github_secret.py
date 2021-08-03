@@ -21,7 +21,6 @@ def main():
     try:
         token_headers = github.fetch_token_headers()
         github_public_key = github.fetch_public_key(token_headers)
-        # TODO: howto construct a Namespace object manually (e.g. use in pi-ops)
         github.update_secret(token_headers, github_public_key, args)
     except HTTPError as http_err:
         github.fatal(f'HTTP error occurred during auth: {http_err}')

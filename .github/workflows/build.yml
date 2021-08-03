@@ -120,15 +120,15 @@ jobs:
           scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa_old fw_rules.sh root@ackerson.de:~/
           ssh -i ~/.ssh/id_rsa_old root@ackerson.de /bin/bash fw_rules.sh
 
-          ./do -fn=updateDNS -dropletID=$NEW_DROPLET_ID
-          ./do -fn=firewallSSH -allow=false -ip=$public_ip_address
-          ./do -fn=deleteServer -dropletID=$OLD_DROPLET_ID
-          ./do -fn=deleteSSHKey -sshKeyID=$DEPLOY_KEY_ID
-
           # update PRIVKEY to new one for subsequent deployments
           python -m pip install --upgrade pip
           pip install -r scripts/requirements.txt
           python scripts/update_github_secret.py --name CTX_DIGITALOCEAN_SSH_PRIVKEY -f ~/.ssh/id_rsa
+
+          ./do -fn=updateDNS -dropletID=$NEW_DROPLET_ID
+          ./do -fn=firewallSSH -allow=false -ip=$public_ip_address
+          ./do -fn=deleteServer -dropletID=$OLD_DROPLET_ID
+          ./do -fn=deleteSSHKey -sshKeyID=$DEPLOY_KEY_ID
 
           # Deploy homepage, bender, telegram-bot to new server
           curl -Ss -X POST -u "${{secrets.CTX_GITHUB_PERSONAL_ACCESS_USERNAME }}:${{secrets.CTX_GITHUB_PERSONAL_ACCESS_TOKEN}}" \

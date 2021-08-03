@@ -105,7 +105,7 @@ def fetch_token_headers():
     return {'Accept': 'application/vnd.github.v3+json',
             'Authorization': f'token {token}'}
 
-def fetch_github_public_key(token_headers: str):
+def fetch_public_key(token_headers: str):
     url = 'https://api.github.com/orgs/ackersonde/actions/secrets/public-key'
 
     resp = requests.get(url, headers=token_headers)
