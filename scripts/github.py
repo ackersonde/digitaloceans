@@ -60,7 +60,7 @@ def update_secret(token_headers: dict, github_JSON: dict, args: SimpleNamespace)
     if not secret_name.startswith("CTX_"):
         secret_name = "CTX_" + secret_name
 
-    payload = args.value
+    payload = ""
     if args.filepath:
       file = Path(args.filepath)
       if b64encode:
@@ -69,6 +69,7 @@ def update_secret(token_headers: dict, github_JSON: dict, args: SimpleNamespace)
       else:
         payload = file.read_text()
     else:
+      payload = args.value
       if b64encode:
         base64_bytes = base64.b64encode(bytes(payload, "utf-8"))
         payload = base64_bytes.decode("utf-8")
