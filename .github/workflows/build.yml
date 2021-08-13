@@ -114,10 +114,19 @@ jobs:
           EOF
           chmod 400 ~/.ssh/id_rsa_old
 
-          # add firewall rules for new server (and cut outgoing one)
+          # Use existing server to update new firewall rules for home network
           envsubst '${CTX_MASTER_HOST} ${CTX_SLAVE_HOST} ${CTX_BUILD_HOST} ${NEW_SERVER_IPV6} ${OLD_SERVER_IPV6}' < scripts/firewall_rules.sh > fw_rules.sh
-          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa_old fw_rules.sh root@ackerson.de:~/
-          ssh -i ~/.ssh/id_rsa_old root@ackerson.de /bin/bash /root/fw_rules.sh
+          if scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa_old fw_rules.sh root@ackerson.de:~/ ; then
+            if ! ssh -i ~/.ssh/id_rsa_old root@ackerson.de /bin/bash /root/fw_rules.sh ; then
+              curl -s -o /dev/null -X POST -d token=${{ secrets.CTX_SLACK_NOTIFICATIONS_TOKEN }} -d channel=C092UE0H4 \
+                -d text="Failed to update firewall rules: ${OLD_SERVER_IPV6} => ${NEW_SERVER_IPV6}" \
+                https://slack.com/api/chat.postMessage
+            fi
+          else
+            curl -s -o /dev/null -X POST -d token=${{ secrets.CTX_SLACK_NOTIFICATIONS_TOKEN }} -d channel=C092UE0H4 \
+              -d text="Unable to reach ackerson.de => Perhaps this is first run?" \
+              https://slack.com/api/chat.postMessage
+          fi
 
           # update PRIVKEY to new one for subsequent deployments
           python -m pip install --upgrade pip
