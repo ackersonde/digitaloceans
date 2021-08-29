@@ -12,4 +12,4 @@ I have a [monthly cronjob](https://github.com/ackersonde/pi-ops/blob/master/scri
 # WARNING
 Every push to this repo will result in a new Droplet created at DigitalOcean => +$5 / month, tearing down and redeploying websites and bots while also updating DNS entries for *.ackerson.de.
 
-Use git commit msg string snippet `[skip ci]` to avoid this!
+Use git commit msg string snippet `[skip ci]` to avoid this.
