@@ -52,11 +52,13 @@ jobs:
           source /tmp/new_digital_ocean_droplet_params
 
           ./do -fn=firewallSSH -allow=true -ip=$public_ip_address
-          while [ `nmap $NEW_SERVER_IPV4 -PN -p ssh | egrep 'open|closed|filtered' | awk '{print $2}'` != "closed" ]
-          do
-            echo "ssh not available..."
-            sleep 5
-          done
+
+          #apt -y install nmap
+          #while [ `nmap $NEW_SERVER_IPV4 -PN -p ssh | egrep 'open|closed|filtered' | awk '{print $2}'` != "closed" ]
+          #do
+          #  echo "ssh not available..."
+          #  sleep 5
+          #done
 
           # prepare Traefik directory
           ssh -o StrictHostKeyChecking=no root@$NEW_SERVER_IPV4 "\
