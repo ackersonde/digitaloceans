@@ -53,6 +53,7 @@ jobs:
 
           ./do -fn=firewallSSH -allow=true -ip=$public_ip_address
           until ping -4 -c 1 "$NEW_SERVER_IPV4"; do
+            echo "pinging $NEW_SERVER_IPV4"
             sleep 5
           done
 
