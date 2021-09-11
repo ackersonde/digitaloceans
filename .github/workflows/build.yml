@@ -52,8 +52,7 @@ jobs:
           source /tmp/new_digital_ocean_droplet_params
 
           ./do -fn=firewallSSH -allow=true -ip=$public_ip_address
-          echo $NEW_SERVER_IPV4
-          until ping -4 -c 1 $NEW_SERVER_IPV4; do
+          until ping -4 -c 1 "$NEW_SERVER_IPV4"; do
             sleep 5
           done
 
