@@ -44,8 +44,20 @@ func main() {
 
 		// now that Droplet is READY, get IP addresses
 		droplet, _, _ = client.Droplets.Get(context.Background(), droplet.ID)
-		ipv4, _ := droplet.PublicIPv4()
-		ipv6, _ := droplet.PublicIPv6()
+
+		// IP addresses aren't immediately available, so wait until you get them
+		ipv4, err := droplet.PublicIPv4()
+		for err != nil {
+			time.Sleep(time.Second * 5)
+			droplet, _, _ = client.Droplets.Get(context.Background(), droplet.ID)
+			ipv4, err = droplet.PublicIPv4()
+		}
+		ipv6, err2 := droplet.PublicIPv6()
+		for err2 != nil {
+			time.Sleep(time.Second * 5)
+			droplet, _, _ = client.Droplets.Get(context.Background(), droplet.ID)
+			ipv6, err2 = droplet.PublicIPv6()
+		}
 
 		// Write /tmp/new_digital_ocean_droplet_params
 		envVarsFile := []byte(
@@ -56,15 +68,15 @@ func main() {
 				"\nexport OLD_DROPLET_ID=" + strconv.Itoa(existingDeployDroplet.ID) +
 				"\nexport OLD_SERVER_IPV6=" + existingIPv6)
 
-		err := ioutil.WriteFile(envFile, envVarsFile, 0644)
+		err = ioutil.WriteFile(envFile, envVarsFile, 0644)
 		if err != nil {
 			fmt.Printf("Failed to write %s: %s", envFile, err)
 		}
 
 		var firewallID = os.Getenv("CTX_DIGITALOCEAN_FIREWALL")
-		_, err2 := client.Firewalls.AddDroplets(context.Background(), firewallID, droplet.ID)
-		if err2 != nil {
-			fmt.Printf("Failed to add droplet to Firewall: %s", err2)
+		_, err3 := client.Firewalls.AddDroplets(context.Background(), firewallID, droplet.ID)
+		if err3 != nil {
+			fmt.Printf("Failed to add droplet to Firewall: %s", err3)
 		}
 	} else if *fnPtr == "deleteServer" {
 		dropletID, _ := strconv.Atoi(*dropletIDPtr)
@@ -133,13 +145,13 @@ func waitUntilDropletReady(client *godo.Client, dropletID int) {
 
 	for ready := false; !ready; {
 		actions, _, _ := client.Droplets.Actions(context.Background(), dropletID, opt)
-		ready = true
-		for _, action := range actions {
-			fmt.Printf("%d: %s => %s\n", j, action.Type, action.Status)
+		//ready = true
+		for id, action := range actions {
+			fmt.Printf("[%d] %d: %s => %s\n", id, j, action.Type, action.Status)
 			if action.Status == "in-progress" {
 				ready = false
 				j++
-				break
+				//break
 			}
 		}
 		if !ready {
