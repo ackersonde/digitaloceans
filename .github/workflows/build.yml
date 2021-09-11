@@ -53,7 +53,7 @@ jobs:
 
           ./do -fn=firewallSSH -allow=true -ip=$public_ip_address
 
-          apt -y install nmap
+          sudo apt-get -y install nmap
           while [ `nmap $NEW_SERVER_IPV4 -PN -p ssh | egrep 'open|closed|filtered' | awk '{print $2}'` != "closed" ]
           do
             echo "ssh not available..."
