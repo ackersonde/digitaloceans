@@ -52,10 +52,9 @@ jobs:
           source /tmp/new_digital_ocean_droplet_params
 
           ./do -fn=firewallSSH -allow=true -ip=$public_ip_address
-          sleep 30 # wait for instance to launch w/ ssh
 
           # prepare Traefik directory
-          ssh -o StrictHostKeyChecking=no root@$NEW_SERVER_IPV4 "\
+          ssh -o StrictHostKeyChecking=no -o ConnectTimeout=60 root@$NEW_SERVER_IPV4 "\
             mkdir -p traefik/logs &&
             cloud-init status --wait > /dev/null 2>&1
             [ $? -ne 0 ] && echo 'Cloud-init failed' && exit 1
