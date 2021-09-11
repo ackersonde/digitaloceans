@@ -48,12 +48,14 @@ func main() {
 		// IP addresses aren't immediately available, so wait until you get them
 		ipv4, err := droplet.PublicIPv4()
 		for err != nil {
+			fmt.Printf("IPv4 fail: %s\n", err.Error())
 			time.Sleep(time.Second * 5)
 			droplet, _, _ = client.Droplets.Get(context.Background(), droplet.ID)
 			ipv4, err = droplet.PublicIPv4()
 		}
 		ipv6, err2 := droplet.PublicIPv6()
 		for err2 != nil {
+			fmt.Printf("IPv6 fail: %s\n", err2.Error())
 			time.Sleep(time.Second * 5)
 			droplet, _, _ = client.Droplets.Get(context.Background(), droplet.ID)
 			ipv6, err2 = droplet.PublicIPv6()
@@ -145,13 +147,13 @@ func waitUntilDropletReady(client *godo.Client, dropletID int) {
 
 	for ready := false; !ready; {
 		actions, _, _ := client.Droplets.Actions(context.Background(), dropletID, opt)
-		//ready = true
-		for id, action := range actions {
-			fmt.Printf("[%d] %d: %s => %s\n", id, j, action.Type, action.Status)
+		ready = true
+		for _, action := range actions {
+			fmt.Printf("%d: %s => %s\n", j, action.Type, action.Status)
 			if action.Status == "in-progress" {
 				ready = false
 				j++
-				//break
+				break
 			}
 		}
 		if !ready {
