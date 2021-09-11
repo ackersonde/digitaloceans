@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -48,6 +49,9 @@ func main() {
 		// IP addresses aren't immediately available, so wait until you get them
 		ipv4, err := droplet.PublicIPv4()
 		for err != nil || ipv4 == "" {
+			if err == nil {
+				err = errors.New("no ipv4 yet")
+			}
 			fmt.Printf("IPv4 fail: %s\n", err.Error())
 			time.Sleep(time.Second * 5)
 			droplet, _, _ = client.Droplets.Get(context.Background(), droplet.ID)
@@ -55,6 +59,9 @@ func main() {
 		}
 		ipv6, err2 := droplet.PublicIPv6()
 		for err2 != nil || ipv6 == "" {
+			if err2 == nil {
+				err2 = errors.New("no ipv6 yet")
+			}
 			fmt.Printf("IPv6 fail: %s\n", err2.Error())
 			time.Sleep(time.Second * 5)
 			droplet, _, _ = client.Droplets.Get(context.Background(), droplet.ID)
