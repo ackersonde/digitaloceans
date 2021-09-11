@@ -47,14 +47,14 @@ func main() {
 
 		// IP addresses aren't immediately available, so wait until you get them
 		ipv4, err := droplet.PublicIPv4()
-		for err != nil {
+		for err != nil || ipv4 == "" {
 			fmt.Printf("IPv4 fail: %s\n", err.Error())
 			time.Sleep(time.Second * 5)
 			droplet, _, _ = client.Droplets.Get(context.Background(), droplet.ID)
 			ipv4, err = droplet.PublicIPv4()
 		}
 		ipv6, err2 := droplet.PublicIPv6()
-		for err2 != nil {
+		for err2 != nil || ipv6 == "" {
 			fmt.Printf("IPv6 fail: %s\n", err2.Error())
 			time.Sleep(time.Second * 5)
 			droplet, _, _ = client.Droplets.Get(context.Background(), droplet.ID)
