@@ -53,8 +53,12 @@ jobs:
 
           ./do -fn=firewallSSH -allow=true -ip=$public_ip_address
 
+          until ping -4 -c 1 $NEW_SERVER_IPV4; do
+            sleep 5
+          done
+
           # prepare Traefik directory
-          ssh -o StrictHostKeyChecking=no -o ConnectTimeout=60 root@$NEW_SERVER_IPV4 "\
+          ssh -o StrictHostKeyChecking=no root@$NEW_SERVER_IPV4 "\
             mkdir -p traefik/logs &&
             cloud-init status --wait > /dev/null 2>&1
             [ $? -ne 0 ] && echo 'Cloud-init failed' && exit 1
