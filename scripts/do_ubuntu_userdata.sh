@@ -1,5 +1,4 @@
 #!/bin/bash
-rm /etc/ssh/ssh_host_*
 echo -n "$CTX_ACKDE_HOST_SSH_KEY_PRIV_B64" | base64 -d | tee /etc/ssh/ssh_host_ecdsa_key
 chmod 600 /etc/ssh/ssh_host_ecdsa_key
 echo -n "$CTX_ACKDE_HOST_SSH_KEY_PUB_B64" | base64 -d | tee /etc/ssh/ssh_host_ecdsa_key.pub
@@ -81,3 +80,8 @@ Unattended-Upgrade::Remove-Unused-Dependencies "true";
 // the file /var/run/reboot-required is found after the upgrade
 Unattended-Upgrade::Automatic-Reboot "true";
 EOF
+
+# these keys maybe generated while this cloud-init is running
+# so do it at the end to hopefully avoid race condition :(
+rm /etc/ssh/ssh_host_ed25519_key*
+rm /etc/ssh/ssh_host_rsa_key*
