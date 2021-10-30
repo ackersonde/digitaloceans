@@ -80,8 +80,3 @@ Unattended-Upgrade::Remove-Unused-Dependencies "true";
 // the file /var/run/reboot-required is found after the upgrade
 Unattended-Upgrade::Automatic-Reboot "true";
 EOF
-
-# these keys maybe generated while this cloud-init is running
-# so do it at the end to hopefully avoid race condition :(
-rm /etc/ssh/ssh_host_ed25519_key*
-rm /etc/ssh/ssh_host_rsa_key*
