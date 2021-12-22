@@ -120,9 +120,13 @@ jobs:
           EOF
           chmod 400 ~/.ssh/id_rsa_old
 
+          # shutdown and backup Vault offsite
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa_old root@ackerson.de "\
+            ssh ubuntu@${CTX_MASTER_HOST} ./vault/backup_restore.sh backup"
+
           # Use existing server to update new firewall rules for home network
           envsubst '${CTX_MASTER_HOST} ${CTX_SLAVE_HOST} ${CTX_BUILD_HOST} ${NEW_SERVER_IPV6} ${OLD_SERVER_IPV6}' < scripts/firewall_rules.sh > fw_rules.sh
-          if scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa_old fw_rules.sh root@ackerson.de:~/ ; then
+          if scp -i ~/.ssh/id_rsa_old fw_rules.sh root@ackerson.de:~/ ; then
             if ! ssh -i ~/.ssh/id_rsa_old root@ackerson.de /bin/bash /root/fw_rules.sh ; then
               curl -s -o /dev/null -X POST -d token=${{ secrets.CTX_SLACK_NOTIFICATIONS_TOKEN }} -d channel=C092UE0H4 \
                 -d text="Failed to update firewall rules: ${OLD_SERVER_IPV6} => ${NEW_SERVER_IPV6}" \
@@ -158,6 +162,10 @@ jobs:
             -H "Accept: application/vnd.github.v3+json" \
             https://api.github.com/repos/ackersonde/telegram-bot/actions/workflows/build.yml/dispatches \
             -d '{"ref":"main"}'
+          curl -Ss -X POST -u "${{secrets.CTX_GITHUB_PERSONAL_ACCESS_USERNAME}}:${{secrets.CTX_GITHUB_PERSONAL_ACCESS_TOKEN}}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/ackersonde/vault/actions/workflows/build.yml/dispatches \
+            -d '{"ref":"master"}'
 
           rm digitalocean_ubuntu_userdata.sh ~/.ssh/* /tmp/new_digital_ocean_droplet_params
 
