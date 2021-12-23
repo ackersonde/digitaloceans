@@ -93,6 +93,17 @@ func GetSSHFirewallRules() []string {
 	return sshSources
 }
 
+func SnapshotVolume(volumeID string) {
+	client := PrepareDigitalOceanLogin()
+	ctx := context.TODO()
+	snapshot, _, err := client.Storage.CreateSnapshot(ctx, &godo.SnapshotCreateRequest{VolumeID: volumeID})
+	if err != nil {
+		log.Println(err)
+	} else {
+		log.Printf("created snapshot of volume: %s\n", snapshot.Name)
+	}
+}
+
 // UpdateFirewall to maintain connectivity while Telekom rotates IPs
 func UpdateFirewall() {
 	ipAddys := prepareSSHipAddresses()

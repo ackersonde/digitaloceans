@@ -123,6 +123,8 @@ jobs:
           # shutdown and backup Vault offsite
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa_old root@ackerson.de "\
             ssh ubuntu@${CTX_MASTER_HOST} ./vault/backup_restore.sh backup"
+          ./do -fn=createSnapshot -volumeID=${{ secrets.CTX_DIGITALOCEAN_VAULT_VOLUME_ID }}
+
 
           # Use existing server to update new firewall rules for home network
           envsubst '${CTX_MASTER_HOST} ${CTX_SLAVE_HOST} ${CTX_BUILD_HOST} ${NEW_SERVER_IPV6} ${OLD_SERVER_IPV6}' < scripts/firewall_rules.sh > fw_rules.sh

@@ -28,12 +28,13 @@ var envFile = "/tmp/new_digital_ocean_droplet_params"
 func main() {
 	client := common.PrepareDigitalOceanLogin()
 
-	fnPtr := flag.String("fn", "createNewServer|deleteServer|firewallSSH|deleteSSHKey", "which function to run")
+	fnPtr := flag.String("fn", "createNewServer|deleteServer|firewallSSH|deleteSSHKey|createSnapshot", "which function to run")
 	dropletIDPtr := flag.String("dropletID", "<digitalOceanDropletID>", "DO droplet to attach floatingIP to")
 	sshKeyPtr := flag.String("sshKeyID", "<digitalOceanSSHKeyID>", "DO ssh key ID")
 	allowPtr := flag.Bool("allow", false, "so deploying agent can access Droplet")
 	ipPtr := flag.String("ip", "<internet ip addr of github action instance>", "see prev param")
 	tagPtr := flag.String("tag", "dynamic", "tag to add to droplet")
+	volumeIDPtr := flag.String("volumeID", "<digitalOceanVolumeID>", "DO volume to make snapshot of")
 	flag.Parse()
 
 	if *fnPtr == "createNewServer" {
@@ -111,6 +112,8 @@ func main() {
 
 		updateDNS(client, ipv6, "ackerson.de", 23738236)
 		updateDNS(client, ipv4, "ackerson.de", 23738257)
+	} else if *fnPtr == "createSnapshot" {
+		common.SnapshotVolume(*volumeIDPtr)
 	}
 }
 
