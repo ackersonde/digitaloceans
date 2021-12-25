@@ -41,8 +41,14 @@ func main() {
 		existingDeployDroplet := findExistingDeployDroplet(client, *tagPtr)
 		existingIPv6, _ := existingDeployDroplet.PublicIPv6()
 
+		client.StorageActions.DetachByDropletID(context.Background(),
+			os.Getenv("CTX_DIGITALOCEAN_VAULT_VOLUME_ID"), existingDeployDroplet.ID)
+
 		droplet, sshKeyID := createDroplet(client, *tagPtr)
 		waitUntilDropletReady(client, droplet.ID)
+
+		client.StorageActions.Attach(context.Background(),
+			os.Getenv("CTX_DIGITALOCEAN_VAULT_VOLUME_ID"), droplet.ID)
 
 		// now that Droplet is READY, get IP addresses
 		droplet, _, _ = client.Droplets.Get(context.Background(), droplet.ID)

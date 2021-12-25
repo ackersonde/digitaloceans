@@ -28,6 +28,7 @@ jobs:
           CTX_SERVER_DEPLOY_CACERT_B64: ${{ secrets.CTX_SERVER_DEPLOY_CACERT_B64 }}
           CTX_SERVER_DEPLOY_SECRET_B64: ${{ secrets.CTX_SERVER_DEPLOY_SECRET_B64 }}
           CTX_SERVER_DEPLOY_PUBLIC_B64: ${{ secrets.CTX_SERVER_DEPLOY_PUBLIC_B64 }}
+          CTX_DIGITALOCEAN_VAULT_VOLUME_ID: ${{ secrets.CTX_DIGITALOCEAN_VAULT_VOLUME_ID }}
           ACME_JSON: ${{ secrets.CTX_ACME_JSON }}
           SYNCTHING_CONFIG: ${{ secrets.SYNCTHING_CONFIG }}
           SYNCTHING_KEY: ${{ secrets.SYNCTHING_KEY }}
@@ -51,6 +52,7 @@ jobs:
           public_ip_address=$(curl -s https://checkip.amazonaws.com)
           source /tmp/new_digital_ocean_droplet_params
 
+          ./do -fn=createSnapshot -volumeID=${{ secrets.CTX_DIGITALOCEAN_VAULT_VOLUME_ID }}
           ./do -fn=firewallSSH -allow=true -ip=$public_ip_address
 
           sudo apt-get -y install nmap
@@ -119,12 +121,6 @@ jobs:
           ${{ secrets.CTX_DIGITALOCEAN_SSH_PRIVKEY }}
           EOF
           chmod 400 ~/.ssh/id_rsa_old
-
-          # shutdown and backup Vault offsite
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa_old root@ackerson.de "\
-            ssh ubuntu@${CTX_MASTER_HOST} ./vault/backup_restore.sh backup"
-          ./do -fn=createSnapshot -volumeID=${{ secrets.CTX_DIGITALOCEAN_VAULT_VOLUME_ID }}
-
 
           # Use existing server to update new firewall rules for home network
           envsubst '${CTX_MASTER_HOST} ${CTX_SLAVE_HOST} ${CTX_BUILD_HOST} ${NEW_SERVER_IPV6} ${OLD_SERVER_IPV6}' < scripts/firewall_rules.sh > fw_rules.sh
