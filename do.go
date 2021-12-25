@@ -113,7 +113,7 @@ func main() {
 		updateDNS(client, ipv6, "ackerson.de", 23738236)
 		updateDNS(client, ipv4, "ackerson.de", 23738257)
 	} else if *fnPtr == "createSnapshot" {
-		common.SnapshotVolume(*volumeIDPtr)
+		common.SnapshotVolume(*volumeIDPtr, githubBuild)
 	}
 }
 

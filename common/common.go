@@ -93,10 +93,14 @@ func GetSSHFirewallRules() []string {
 	return sshSources
 }
 
-func SnapshotVolume(volumeID string) {
+func SnapshotVolume(volumeID string, githubBuild string) {
 	client := PrepareDigitalOceanLogin()
 	ctx := context.TODO()
-	snapshot, _, err := client.Storage.CreateSnapshot(ctx, &godo.SnapshotCreateRequest{VolumeID: volumeID})
+	snapshot, _, err := client.Storage.CreateSnapshot(ctx,
+		&godo.SnapshotCreateRequest{
+			VolumeID: volumeID,
+			Name:     "vault-data" + githubBuild},
+	)
 	if err != nil {
 		log.Println(err)
 	} else {
