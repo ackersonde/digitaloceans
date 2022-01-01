@@ -38,17 +38,19 @@ func main() {
 	flag.Parse()
 
 	if *fnPtr == "createNewServer" {
-		existingDeployDroplet := findExistingDeployDroplet(client, *tagPtr)
+		existingDeployDroplet := common.FindExistingDeployDroplet(*tagPtr)
 		existingIPv6, _ := existingDeployDroplet.PublicIPv6()
-
-		client.StorageActions.DetachByDropletID(context.Background(),
-			os.Getenv("CTX_DIGITALOCEAN_VAULT_VOLUME_ID"), existingDeployDroplet.ID)
 
 		droplet, sshKeyID := createDroplet(client, *tagPtr)
 		waitUntilDropletReady(client, droplet.ID)
 
-		client.StorageActions.Attach(context.Background(),
+		action, _, err := client.StorageActions.Attach(context.Background(),
 			os.Getenv("CTX_DIGITALOCEAN_VAULT_VOLUME_ID"), droplet.ID)
+		if err != nil {
+			fmt.Printf("Unable to attach vault volume to droplet %d: %s\n", droplet.ID, err.Error())
+		} else {
+			fmt.Printf("Attaching vault vol to droplet %d: %s\n", droplet.ID, action.Status)
+		}
 
 		// now that Droplet is READY, get IP addresses
 		droplet, _, _ = client.Droplets.Get(context.Background(), droplet.ID)
@@ -121,19 +123,6 @@ func main() {
 	} else if *fnPtr == "createSnapshot" {
 		common.SnapshotVolume(*volumeIDPtr, githubBuild)
 	}
-}
-
-func findExistingDeployDroplet(client *godo.Client, tag string) godo.Droplet {
-	var droplet godo.Droplet
-	droplet.ID = 1 // set default, nonsensical value
-	if tag == "traefik" {
-		droplets, _, _ := client.Droplets.ListByTag(context.Background(), tag, &godo.ListOptions{})
-		if len(droplets) > 0 {
-			droplet = droplets[0]
-		}
-	}
-
-	return droplet
 }
 
 func updateDNS(client *godo.Client, ipAddr string, hostname string, domainID int) {

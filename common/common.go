@@ -2,6 +2,7 @@ package common
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net"
 	"os"
@@ -93,9 +94,37 @@ func GetSSHFirewallRules() []string {
 	return sshSources
 }
 
+func FindExistingDeployDroplet(tag string) godo.Droplet {
+	client := PrepareDigitalOceanLogin()
+	ctx := context.Background()
+	var droplet godo.Droplet
+
+	droplet.ID = 1 // set default, nonsensical value
+	if tag == "traefik" {
+		droplets, _, _ := client.Droplets.ListByTag(ctx, tag, &godo.ListOptions{})
+		if len(droplets) > 0 {
+			droplet = droplets[0]
+		}
+	}
+
+	return droplet
+}
+
 func SnapshotVolume(volumeID string, githubBuild string) {
 	client := PrepareDigitalOceanLogin()
-	ctx := context.TODO()
+	ctx := context.Background()
+
+	existingDeployDroplet := FindExistingDeployDroplet("traefik")
+	action, _, err := client.StorageActions.DetachByDropletID(ctx,
+		os.Getenv("CTX_DIGITALOCEAN_VAULT_VOLUME_ID"), existingDeployDroplet.ID)
+	if err != nil {
+		fmt.Printf("Unable to detach vault volume from droplet %d: %s\n", existingDeployDroplet.ID, err.Error())
+	} else {
+		fmt.Printf("Detaching vault vol from droplet %d: %s\n", existingDeployDroplet.ID, action.Status)
+	}
+
+	time.Sleep(10 * time.Second)
+
 	snapshot, _, err := client.Storage.CreateSnapshot(ctx,
 		&godo.SnapshotCreateRequest{
 			VolumeID: volumeID,
@@ -104,8 +133,10 @@ func SnapshotVolume(volumeID string, githubBuild string) {
 	if err != nil {
 		log.Println(err)
 	} else {
-		log.Printf("created snapshot of volume: %s\n", snapshot.Name)
+		log.Printf("creating snapshot of volume: %s\n", snapshot.Name)
 	}
+
+	time.Sleep(10 * time.Second)
 }
 
 // UpdateFirewall to maintain connectivity while Telekom rotates IPs
