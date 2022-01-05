@@ -140,6 +140,10 @@ jobs:
           fi
 
           # update PRIVKEY to new one for subsequent deployments
+          # grab github.py from pi-ops repo
+          curl -o scripts/github.py https://raw.githubusercontent.com/ackersonde/pi-ops/master/scripts/github.py
+          curl -o scripts/requirements.txt https://raw.githubusercontent.com/ackersonde/pi-ops/master/scripts/requirements.txt
+
           python -m pip install --upgrade pip
           pip install -r scripts/requirements.txt
           python scripts/update_github_secret.py --name CTX_DIGITALOCEAN_SSH_PRIVKEY -f ~/.ssh/id_rsa

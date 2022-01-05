@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 from requests.exceptions import HTTPError
-
 import argparse
-
-import github
+import github   # found over in pi-ops repo
 
 
 def main():
