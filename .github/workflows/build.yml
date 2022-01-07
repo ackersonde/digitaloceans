@@ -40,7 +40,6 @@ jobs:
           CTX_SLAVE_HOST: ${{ secrets.CTX_IPV6_SLAVE_HOME }}
           SERVERS: "ubuntu@$CTX_MASTER_HOST ubuntu@$CTX_SLAVE_HOST ackersond@$CTX_BUILD_HOST"
           GITHUB_APP_CLIENT_ID: ${{ secrets.CTX_GITHUB_APP_CLIENT_ID }}
-          GITHUB_INSTALL_ID: ${{ secrets.CTX_GITHUB_INSTALL_ID }}
           GITHUB_SECRETS_PK_PEM: ${{ secrets.CTX_GITHUB_SECRETS_PK_PEM }}
         run: |
           go mod tidy
@@ -144,6 +143,7 @@ jobs:
           curl -o scripts/github.py https://raw.githubusercontent.com/ackersonde/pi-ops/master/scripts/github.py
           curl -o scripts/requirements.txt https://raw.githubusercontent.com/ackersonde/pi-ops/master/scripts/requirements.txt
 
+          export GITHUB_INSTALL_ID=$(echo ${{ secrets.CTX_GITHUB_INSTALL_ID }} | base64 -d)
           python -m pip install --upgrade pip
           pip install -r scripts/requirements.txt
           python scripts/update_github_secret.py --name CTX_DIGITALOCEAN_SSH_PRIVKEY -f ~/.ssh/id_rsa
