@@ -97,7 +97,7 @@ jobs:
               --label='traefik.http.middlewares.https-redirect.redirectscheme.scheme=https' \
               --label='traefik.http.middlewares.https-redirect.redirectscheme.permanent=true' \
               --label='traefik.http.middlewares.https-redirect.redirectscheme.port=443' \
-              -p 80:80 -p 443:443 --name traefik traefik:2.5 \
+              -p 80:80 -p 443:443 --name traefik traefik:2.6 \
               --accesslog.filepath=/var/log/traefik/access.log \
               --log.filepath=/var/log/traefik/traefik.log --log.level=WARN \
               --api --providers.docker.exposedByDefault=false --providers.file.filename=/dynamic_conf.yml \
