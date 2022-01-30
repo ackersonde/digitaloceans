@@ -51,8 +51,16 @@ EOF
 ip6tables -t nat -A POSTROUTING -s fd00::/80 ! -o docker0 -j MASQUERADE
 dpkg-reconfigure -f noninteractive unattended-upgrades
 
+apt-get -y remove docker docker-engine docker.io containerd runc
 apt-get update
-apt-get -y install docker.io do-agent iptables-persistent
+apt-get -y install ca-certificates curl gnupg lsb-release iptables-persistent do-agent
+
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+apt-get update
+apt-get -y install docker-ce docker-ce-cli containerd.io
 
 systemctl start docker
 systemctl enable docker
