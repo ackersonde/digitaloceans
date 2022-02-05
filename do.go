@@ -122,6 +122,7 @@ func main() {
 		updateDNS(client, ipv4, "ackerson.de", 23738257)
 	} else if *fnPtr == "createSnapshot" {
 		common.SnapshotVolume(*volumeIDPtr, githubBuild)
+		// TODO: delete snapshots older than 1 month!
 	}
 }
 
