@@ -20,6 +20,12 @@ tls:
 
 http:
   middlewares:
+    http-ratelimit:
+      ratelimit:
+        average: 100
+        burst: 50
+        period: 3s
+
     secHeaders:
       headers:
         browserXssFilter: true
