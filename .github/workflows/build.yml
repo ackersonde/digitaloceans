@@ -87,7 +87,7 @@ jobs:
               --label='traefik.enable=true' \
               --label='traefik.http.middlewares.api_auth.basicauth.users=${{ secrets.CTX_BASIC_AUTH_USER }}:${{ secrets.CTX_BASIC_AUTH_PASSWD }}' \
               --label='traefik.http.routers.api.entrypoints=web,secure' \
-              --label='traefik.http.routers.api.middlewares=secHeaders@file,api_auth' \
+              --label='traefik.http.routers.api.middlewares=http-ratelimit@file,secHeaders@file,api_auth' \
               --label='traefik.http.routers.api.rule=Host(\`monitor.ackerson.de\`)' \
               --label='traefik.http.routers.api.service=api@internal' \
               --label='traefik.http.routers.api.tls.certResolver=letsencrypt' \
@@ -112,7 +112,7 @@ jobs:
               --label='traefik.http.routers.syncthing.tls.certResolver=letsencrypt' \
               --label='traefik.http.routers.syncthing.tls.domains=${{ secrets.SYNCTHING_HOSTNAME }}' \
               --label='traefik.http.routers.syncthing.rule=Host(\`${{ secrets.SYNCTHING_HOSTNAME }}\`)' \
-              --label='traefik.http.routers.syncthing.middlewares=secHeaders@file,api_auth' \
+              --label='traefik.http.routers.syncthing.middlewares=http-ratelimit@file,secHeaders@file,api_auth' \
               --label='traefik.http.routers.syncthing.service=syncthing-svc' \
               --label='traefik.http.services.syncthing-svc.loadbalancer.server.port=8384' \
               -p 8384:8384 -p 22000:22000/tcp -p 22000:22000/udp --name syncthing syncthing/syncthing:latest"
