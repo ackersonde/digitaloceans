@@ -8,8 +8,8 @@ sleep 10
 
 for i in $SERVERS
 do
-   ssh -o StrictHostKeyChecking=no $i \
-      "sudo ufw allow from $NEW_SERVER_IPV6 to any port 22 && \
-      sudo ufw --force delete \`sudo ufw status numbered | grep $OLD_SERVER_IPV6 | grep -o -E '[0-9]+' | head -1\` && \
+   ssh -o StrictHostKeyChecking=no $i "\
+      sudo ip6tables -A INPUT -s $NEW_SERVER_IPV6 -m conntrack -p tcp --dport 22 --ctstate NEW,ESTABLISHED -j ACCEPT && \
+      sudo ip6tables -D INPUT -s $OLD_SERVER_IPV6 -m conntrack -p tcp --dport 22 --ctstate NEW,ESTABLISHED -j ACCEPT && \
       sudo ip6tables-save -f /etc/iptables/rules.v6"
 done
