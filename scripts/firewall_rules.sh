@@ -10,7 +10,6 @@ for i in $SERVERS
 do
    ssh -o StrictHostKeyChecking=no $i \
       "sudo ufw allow from $NEW_SERVER_IPV6 to any port 22 && \
-      sudo ufw --force delete \`sudo ufw status numbered | grep $OLD_SERVER_IPV6 | grep -o -E '[0-9]+' | head -1\`"
+      sudo ufw --force delete \`sudo ufw status numbered | grep $OLD_SERVER_IPV6 | grep -o -E '[0-9]+' | head -1\` && \
+      sudo ip6tables-save -f /etc/iptables/rules.v6"
 done
-
-ssh ubuntu
