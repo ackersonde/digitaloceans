@@ -2,7 +2,6 @@ package common
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net"
 	"os"
@@ -108,35 +107,6 @@ func FindExistingDeployDroplet(tag string) godo.Droplet {
 	}
 
 	return droplet
-}
-
-func SnapshotVolume(volumeID string, githubBuild string) {
-	client := PrepareDigitalOceanLogin()
-	ctx := context.Background()
-
-	existingDeployDroplet := FindExistingDeployDroplet("traefik")
-	action, _, err := client.StorageActions.DetachByDropletID(ctx,
-		os.Getenv("CTX_DIGITALOCEAN_VAULT_VOLUME_ID"), existingDeployDroplet.ID)
-	if err != nil {
-		fmt.Printf("Unable to detach vault volume from droplet %d: %s\n", existingDeployDroplet.ID, err.Error())
-	} else {
-		fmt.Printf("Detaching vault vol from droplet %d: %s\n", existingDeployDroplet.ID, action.Status)
-	}
-
-	time.Sleep(10 * time.Second)
-
-	snapshot, _, err := client.Storage.CreateSnapshot(ctx,
-		&godo.SnapshotCreateRequest{
-			VolumeID: volumeID,
-			Name:     "vault-data" + githubBuild},
-	)
-	if err != nil {
-		log.Println(err)
-	} else {
-		log.Printf("creating snapshot of volume: %s\n", snapshot.Name)
-	}
-
-	time.Sleep(10 * time.Second)
 }
 
 // UpdateFirewall to maintain connectivity while Telekom rotates IPs
