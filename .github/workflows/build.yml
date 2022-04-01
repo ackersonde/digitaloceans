@@ -164,6 +164,10 @@ jobs:
             -H "Accept: application/vnd.github.v3+json" \
             https://api.github.com/repos/ackersonde/telegram-bot/actions/workflows/build.yml/dispatches \
             -d '{"ref":"main"}'
+          curl -Ss -X POST -u "${{secrets.CTX_GITHUB_PERSONAL_ACCESS_USERNAME}}:${{secrets.CTX_GITHUB_PERSONAL_ACCESS_TOKEN}}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/ackersonde/hsm-planb.de/actions/workflows/build.yml/dispatches \
+            -d '{"ref":"master"}'
 
           rm digitalocean_ubuntu_userdata.sh ~/.ssh/* /tmp/new_digital_ocean_droplet_params
 

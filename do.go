@@ -111,6 +111,8 @@ func main() {
 
 		updateDNS(client, ipv6, "ackerson.de", 23738236)
 		updateDNS(client, ipv4, "ackerson.de", 23738257)
+		updateDNS(client, ipv6, "hausmeisterservice-planb.de", 302721441)
+		updateDNS(client, ipv4, "hausmeisterservice-planb.de", 302721419)
 	}
 }
 
