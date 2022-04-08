@@ -99,6 +99,8 @@ jobs:
               --log.filepath=/var/log/traefik/traefik.log --log.level=WARN \
               --api --providers.docker.exposedByDefault=false --providers.file.filename=/dynamic_conf.yml \
               --entrypoints.web.address=:80 --entrypoints.secure.address=:443 \
+              --entryPoints.web.forwardedHeaders.trustedIPs=172.17.0.1/24 \
+              --entryPoints.secure.forwardedHeaders.trustedIPs=172.17.0.1/24 \
               --certificatesResolvers.letsencrypt.acme.email=dan@ackerson.de \
               --certificatesResolvers.letsencrypt.acme.storage=acme.json \
               --certificatesResolvers.letsencrypt.acme.dnsChallenge.provider=digitalocean \
