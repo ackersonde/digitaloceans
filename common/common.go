@@ -2,10 +2,12 @@ package common
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/digitalocean/godo"
@@ -109,7 +111,27 @@ func FindExistingDeployDroplet(tag string) godo.Droplet {
 	return droplet
 }
 
-// UpdateFirewall to maintain connectivity while Telekom rotates IPs
+func UpdateDNSentry(ipAddr string, hostname string, domainID int) {
+	client := PrepareDigitalOceanLogin()
+	record, _, err := client.Domains.Record(context.Background(), hostname, domainID)
+	if err != nil {
+		log.Printf("unable to updateDNS for %s: %s", hostname, err.Error())
+	}
+	//fmt.Printf("current DNS %s: %s => %s\n", record.Name, record.Type, record.Data)
+
+	editRequest := &godo.DomainRecordEditRequest{
+		Type: record.Type,
+		Name: record.Name,
+		Data: strings.ToLower(ipAddr),
+	}
+	_, _, err = client.Domains.EditRecord(context.Background(), hostname, domainID, editRequest)
+	for err != nil {
+		fmt.Printf("FAIL domain update DNS: %s\n", err)
+		time.Sleep(5 * time.Second)
+		_, _, err = client.Domains.EditRecord(context.Background(), hostname, domainID, editRequest)
+	}
+}
+
 func UpdateFirewall() {
 	ipAddys := prepareSSHipAddresses()
 
@@ -189,7 +211,6 @@ func UpdateFirewall() {
 	}
 }
 
-// DropletList does what it says on the box
 func DropletList(client *godo.Client) ([]godo.Droplet, error) {
 	list := []godo.Droplet{}
 

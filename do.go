@@ -12,7 +12,6 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/ackersonde/digitaloceans/common"
@@ -109,30 +108,10 @@ func main() {
 		ipv4, _ := droplet.PublicIPv4()
 		ipv6, _ := droplet.PublicIPv6()
 
-		updateDNS(client, ipv6, "ackerson.de", 23738236)
-		updateDNS(client, ipv4, "ackerson.de", 23738257)
-		updateDNS(client, ipv6, "hausmeisterservice-planb.de", 302721441)
-		updateDNS(client, ipv4, "hausmeisterservice-planb.de", 302721419)
-	}
-}
-
-func updateDNS(client *godo.Client, ipAddr string, hostname string, domainID int) {
-	record, _, err := client.Domains.Record(context.Background(), hostname, domainID)
-	if err != nil {
-		log.Printf("unable to updateDNS for %s: %s", hostname, err.Error())
-	}
-	//fmt.Printf("current DNS %s: %s => %s\n", record.Name, record.Type, record.Data)
-
-	editRequest := &godo.DomainRecordEditRequest{
-		Type: record.Type,
-		Name: record.Name,
-		Data: strings.ToLower(ipAddr),
-	}
-	_, _, err = client.Domains.EditRecord(context.Background(), hostname, domainID, editRequest)
-	for err != nil {
-		fmt.Printf("FAIL domain update DNS: %s\n", err)
-		time.Sleep(5 * time.Second)
-		_, _, err = client.Domains.EditRecord(context.Background(), hostname, domainID, editRequest)
+		common.UpdateDNSentry(ipv6, "ackerson.de", 23738236)
+		common.UpdateDNSentry(ipv4, "ackerson.de", 23738257)
+		common.UpdateDNSentry(ipv6, "hausmeisterservice-planb.de", 302721441)
+		common.UpdateDNSentry(ipv4, "hausmeisterservice-planb.de", 302721419)
 	}
 }
 
