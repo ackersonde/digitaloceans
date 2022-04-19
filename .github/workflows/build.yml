@@ -19,7 +19,7 @@ jobs:
           python-version: '3.9'
       - uses: actions/setup-go@v2
         with:
-          go-version: '1.17'
+          go-version: '1.18'
       - name: Build application
         env:
           CTX_DIGITALOCEAN_DROPLET_PROXY_TOKEN: ${{ secrets.CTX_DIGITALOCEAN_DROPLET_PROXY_TOKEN }}
@@ -147,6 +147,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r scripts/requirements.txt
           python scripts/update_github_secret.py --name CTX_DIGITALOCEAN_SSH_PRIVKEY -f ~/.ssh/id_rsa
+
+          curl -s -o /dev/null -X POST -d token=${{ secrets.CTX_SLACK_NOTIFICATIONS_TOKEN }} -d channel=C33QYV3PW \
+            -d text="vfa update $NEW_SERVER_IPV6,$NEW_SERVER_IPV4" \
+            https://slack.com/api/chat.postMessage
 
           # perform final cleanup
           ./do -fn=updateDNS -dropletID=$NEW_DROPLET_ID
