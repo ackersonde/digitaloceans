@@ -39,7 +39,7 @@ func PrepareDigitalOceanLogin() *godo.Client {
 		AccessToken: doPersonalAccessToken,
 	}
 
-	oauthClient := oauth2.NewClient(context.TODO(), tokenSource)
+	oauthClient := oauth2.NewClient(context.Background(), tokenSource)
 	return godo.NewClient(oauthClient)
 }
 
@@ -55,7 +55,7 @@ func prepareSSHipAddresses() []string {
 
 // ToggleSSHipAddress adds/removes an IP address on the FW rule
 func ToggleSSHipAddress(add bool, ipAddress string, client *godo.Client) {
-	ctx := context.TODO()
+	ctx := context.Background()
 
 	ruleRequest := &godo.FirewallRulesRequest{
 		InboundRules: []godo.InboundRule{
@@ -85,7 +85,7 @@ func ToggleSSHipAddress(add bool, ipAddress string, client *godo.Client) {
 func GetSSHFirewallRules() []string {
 	var sshSources []string
 	client := PrepareDigitalOceanLogin()
-	firewall, _, _ := client.Firewalls.Get(context.TODO(), firewallID)
+	firewall, _, _ := client.Firewalls.Get(context.Background(), firewallID)
 	for _, rule := range firewall.InboundRules {
 		if rule.PortRange == "22" {
 			sshSources = append(sshSources, rule.Sources.Addresses...)
@@ -136,7 +136,7 @@ func UpdateFirewall() {
 	ipAddys := prepareSSHipAddresses()
 
 	client := PrepareDigitalOceanLogin()
-	ctx := context.TODO()
+	ctx := context.Background()
 
 	floatingIP, _, err := client.FloatingIPs.Get(ctx, os.Getenv("doFloatingIP"))
 	if err != nil {
@@ -217,7 +217,7 @@ func DropletList(client *godo.Client) ([]godo.Droplet, error) {
 	// create options. initially, these will be blank
 	opt := &godo.ListOptions{}
 	for {
-		droplets, resp, err := client.Droplets.List(context.TODO(), opt)
+		droplets, resp, err := client.Droplets.List(context.Background(), opt)
 		if err != nil {
 			return nil, err
 		}
@@ -248,7 +248,7 @@ func DeleteDODroplet(ID int) string {
 
 	client := PrepareDigitalOceanLogin()
 
-	_, err := client.Droplets.Delete(context.TODO(), ID)
+	_, err := client.Droplets.Delete(context.Background(), ID)
 	if err == nil {
 		result = "Successfully deleted Droplet `" + strconv.Itoa(ID) + "`"
 	} else {
@@ -262,7 +262,7 @@ func DeleteDODroplet(ID int) string {
 func DeleteSSHKey(ID int, client *godo.Client) string {
 	var result string
 
-	_, err := client.Keys.DeleteByID(context.TODO(), ID)
+	_, err := client.Keys.DeleteByID(context.Background(), ID)
 	if err == nil {
 		result = "Successfully deleted SSH Key `" + strconv.Itoa(ID) + "`"
 	} else {
