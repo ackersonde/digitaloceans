@@ -176,12 +176,8 @@ func createSSHKey(client *godo.Client) *godo.Key {
 func createDroplet(client *godo.Client, tag string) (*godo.Droplet, string) {
 	var newDroplet *godo.Droplet
 
-	//fingerprint := os.Getenv("CTX_SSH_DEPLOY_FINGERPRINT")
-	dropletName := "b" + githubBuild + ".ackerson.de"
-
 	deploymentKey := createSSHKey(client)
-	sshKeys := []godo.DropletCreateSSHKey{}
-	sshKeys = append(sshKeys, godo.DropletCreateSSHKey{Fingerprint: deploymentKey.Fingerprint})
+	dropletName := "b" + githubBuild + ".ackerson.de"
 
 	digitaloceanIgnitionJSON, err := ioutil.ReadFile("digitalocean_ubuntu_userdata.sh")
 	if err != nil {
@@ -195,11 +191,11 @@ func createDroplet(client *godo.Client, tag string) (*godo.Droplet, string) {
 			Region: "fra1",
 			Size:   "s-1vcpu-1gb-amd",
 			Image: godo.DropletCreateImage{
-				Slug: "ubuntu-21-10-x64",
+				Slug: "ubuntu-22-04-x64",
 			},
 			IPv6:       true,
 			Monitoring: true,
-			SSHKeys:    sshKeys,
+			SSHKeys:    []godo.DropletCreateSSHKey{{Fingerprint: deploymentKey.Fingerprint}},
 			UserData:   string(digitaloceanIgnitionJSON),
 			Tags:       []string{tag},
 		}

@@ -13,7 +13,7 @@ def main():
 
     args = parser.parse_args()
     if not args.value and not args.filepath:
-      github.fatal('Please provide either a secret `value` or `filepath`')
+        github.fatal('Please provide either a secret `value` or `filepath`')
 
     # https://docs.github.com/en/free-pro-team@latest/rest/reference/actions#secrets
     try:
@@ -24,6 +24,7 @@ def main():
         github.fatal(f'HTTP error occurred during auth: {http_err}')
     except Exception as err:
         github.fatal(f'Other error occurred during auth: {err}')
+
 
 if __name__ == '__main__':
     main()
