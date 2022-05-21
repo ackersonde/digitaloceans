@@ -37,8 +37,8 @@ chown -R 1000:1000 /root/syncthing
 touch ~/.hushlogin
 
 # Setup Advanced DO monitoring
-echo "deb https://repos.insights.digitalocean.com/apt/do-agent/ main main" > /etc/apt/sources.list.d/digitalocean-agent.list
-curl -fsSL https://repos.insights.digitalocean.com/sonar-agent.asc | apt-key add -
+curl -fsSL https://repos.insights.digitalocean.com/sonar-agent.asc | gpg --dearmour -o /usr/share/keyrings/digitalocean-agent.gpg
+echo "deb [arch=amd64 signed-by=/usr/share/keyrings/digitalocean-agent.gpg] https://repos.insights.digitalocean.com/apt/do-agent/ main main" > /etc/apt/sources.list.d/digitalocean-agent.list
 
 # prepare iptables persistence and unattended-upgrades install settings
 debconf-set-selections <<EOF
@@ -53,7 +53,7 @@ dpkg-reconfigure -f noninteractive unattended-upgrades
 
 apt-get -y remove docker docker-engine docker.io containerd runc
 apt-get update
-apt-get -y install ca-certificates curl gnupg lsb-release iptables-persistent do-agent
+apt-get -y install wireguard ca-certificates curl gnupg lsb-release iptables-persistent do-agent
 
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 echo \
