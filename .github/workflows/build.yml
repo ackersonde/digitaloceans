@@ -46,6 +46,15 @@ jobs:
 
           envsubst '${CTX_ACKDE_HOST_SSH_KEY_PRIV_B64} ${CTX_ACKDE_HOST_SSH_KEY_PUB_B64} ${CTX_SERVER_DEPLOY_CACERT_B64} ${CTX_SERVER_DEPLOY_SECRET_B64} ${CTX_SERVER_DEPLOY_PUBLIC_B64} ${ACME_JSON} ${SYNCTHING_CONFIG} ${SYNCTHING_KEY} ${SYNCTHING_CERT}' < scripts/do_ubuntu_userdata.sh > digitalocean_ubuntu_userdata.sh
 
+          export ORG_WG_DO_HOME_PORT_D64=$(echo ${{ secrets.ORG_WG_DO_HOME_PORT }} | base64 -d)
+          export ORG_WG_DO_PRIVATE_KEY_D64=$(echo ${{ secrets.ORG_WG_DO_PRIVATE_KEY }} | base64 -d)
+          export ORG_WG_HOME_PUBLIC_KEY_D64=$(echo ${{ secrets.ORG_WG_HOME_PUBLIC_KEY }} | base64 -d)
+          export ORG_WG_DO_HOME_PRESHAREDKEY_D64=$(echo ${{ secrets.ORG_WG_DO_HOME_PRESHAREDKEY }} | base64 -d)
+          sed -i -e "s@{{ORG_WG_DO_HOME_PORT}}@$ORG_WG_DO_HOME_PORT_D64@" digitalocean_ubuntu_userdata.sh
+          sed -i -e "s@{{ORG_WG_DO_PRIVATE_KEY}}@$ORG_WG_DO_PRIVATE_KEY_D64@" digitalocean_ubuntu_userdata.sh
+          sed -i -e "s@{{ORG_WG_HOME_PUBLIC_KEY}}@$ORG_WG_HOME_PUBLIC_KEY_D64@" digitalocean_ubuntu_userdata.sh
+          sed -i -e "s@{{ORG_WG_DO_HOME_PRESHAREDKEY}}@$ORG_WG_DO_HOME_PRESHAREDKEY_D64@" digitalocean_ubuntu_userdata.sh
+
           mkdir ~/.ssh # for new RSA key created in next step
           ./do -fn=createNewServer -tag=traefik
 

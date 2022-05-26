@@ -55,6 +55,21 @@ apt-get -y remove docker docker-engine docker.io containerd runc
 apt-get update
 apt-get -y install wireguard ca-certificates curl gnupg lsb-release iptables-persistent do-agent
 
+cat > /etc/wireguard/wg.conf << EOF
+[Interface]
+Address = 10.9.0.1/24,fd42:42:42::1/64
+ListenPort = {{ORG_WG_DO_HOME_PORT}}
+PrivateKey = {{ORG_WG_DO_PRIVATE_KEY}}
+
+#pixel6
+[Peer]
+PublicKey = {{ORG_WG_HOME_PUBLIC_KEY}}
+AllowedIPs = 10.9.0.2/32,fd42:42:42::2/128
+PresharedKey = {{ORG_WG_DO_HOME_PRESHAREDKEY}}
+EOF
+
+wg-quick up wg
+
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
@@ -89,3 +104,6 @@ Unattended-Upgrade::Remove-Unused-Dependencies "true";
 // the file /var/run/reboot-required is found after the upgrade
 Unattended-Upgrade::Automatic-Reboot "true";
 EOF
+
+/usr/bin/wg-quick up wg
+systemctl enable wg-quick@wg.service
