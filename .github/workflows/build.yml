@@ -136,8 +136,6 @@ jobs:
           # update Vault CIDRs with new addrqqq:qesses
           curl -s -X POST -d token=${{ secrets.CTX_SLACK_NOTIFICATIONS_TOKEN }} -d channel=C33QYV3PW \
             -d text="vfa update $NEW_SERVER_IPV6,$NEW_SERVER_IPV4" https://slack.com/api/chat.postMessage
-          curl -s -X POST -d token=${{ secrets.CTX_SLACK_NOTIFICATIONS_TOKEN }} -d channel=C33QYV3PW \
-            -d text="logs bender" https://slack.com/api/chat.postMessage
 
           # Use existing server to update new firewall rules for home network & vault instance
           envsubst '${CTX_MASTER_HOST} ${CTX_SLAVE_HOST} ${CTX_BUILD_HOST} ${NEW_SERVER_IPV6} ${OLD_SERVER_IPV6}' < scripts/firewall_rules.sh > fw_rules.sh
