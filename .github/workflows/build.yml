@@ -133,7 +133,7 @@ jobs:
           EOF
           chmod 400 ~/.ssh/id_rsa_old
 
-          # update Vault CIDRs with new addrqqq:qesses
+          # update Vault CIDRs with new addresses
           curl -s -X POST -d token=${{ secrets.CTX_SLACK_NOTIFICATIONS_TOKEN }} -d channel=C33QYV3PW \
             -d text="vfa update $NEW_SERVER_IPV6,$NEW_SERVER_IPV4" https://slack.com/api/chat.postMessage
 
