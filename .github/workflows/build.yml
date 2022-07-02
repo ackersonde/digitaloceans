@@ -31,9 +31,9 @@ jobs:
           CTX_SERVER_DEPLOY_PUBLIC_B64: ${{ secrets.CTX_SERVER_DEPLOY_PUBLIC_B64 }}
           ORG_TITAN_PUBLIC_KEY: ${{ secrets.ORG_TITAN_PUBLIC_KEY }}
           ACME_JSON: ${{ secrets.CTX_ACME_JSON }}
-          SYNCTHING_CONFIG: ${{ secrets.SYNCTHING_CONFIG }}
-          SYNCTHING_KEY: ${{ secrets.SYNCTHING_KEY }}
-          SYNCTHING_CERT: ${{ secrets.SYNCTHING_CERT }}
+          SYNCTHING_CONFIG_B64: ${{ secrets.ORG_CLOUD_SYNCTHING_CONFIG }}
+          SYNCTHING_KEY_B64: ${{ secrets.ORG_CLOUD_SYNCTHING_KEY }}
+          SYNCTHING_CERT_B64: ${{ secrets.ORG_CLOUD_SYNCTHING_CERT }}
           CTX_MASTER_HOST: ${{ secrets.CTX_IPV6_MASTER_HOME }}
           CTX_BUILD_HOST: ${{ secrets.CTX_IPV6_BUILD_HOME }}
           CTX_SLAVE_HOST: ${{ secrets.CTX_IPV6_SLAVE_HOME }}
@@ -44,16 +44,19 @@ jobs:
           go mod tidy
           go build do.go
 
+          export SYNCTHING_CONFIG_B64=$(echo ${{ secrets.SYNCTHING_CONFIG_B64 }} | base64 -d)
+          export SYNCTHING_KEY_B64=$(echo ${{ secrets.SYNCTHING_KEY_B64 }} | base64 -d)
+          export SYNCTHING_CERT_B64=$(echo ${{ secrets.SYNCTHING_CERT_B64 }} | base64 -d)
           envsubst '${CTX_ACKDE_HOST_SSH_KEY_PRIV_B64} ${CTX_ACKDE_HOST_SSH_KEY_PUB_B64} ${CTX_SERVER_DEPLOY_CACERT_B64} ${CTX_SERVER_DEPLOY_SECRET_B64} ${CTX_SERVER_DEPLOY_PUBLIC_B64} ${ORG_TITAN_PUBLIC_KEY} ${ACME_JSON} ${SYNCTHING_CONFIG} ${SYNCTHING_KEY} ${SYNCTHING_CERT}' < scripts/do_ubuntu_userdata.sh > digitalocean_ubuntu_userdata.sh
 
-          export ORG_WG_DO_HOME_PORT_D64=$(echo ${{ secrets.ORG_WG_DO_HOME_PORT }} | base64 -d)
-          export ORG_WG_DO_PRIVATE_KEY_D64=$(echo ${{ secrets.ORG_WG_DO_PRIVATE_KEY }} | base64 -d)
-          export ORG_WG_HOME_PUBLIC_KEY_D64=$(echo ${{ secrets.ORG_WG_HOME_PUBLIC_KEY }} | base64 -d)
-          export ORG_WG_DO_HOME_PRESHAREDKEY_D64=$(echo ${{ secrets.ORG_WG_DO_HOME_PRESHAREDKEY }} | base64 -d)
-          sed -i -e "s@{{ORG_WG_DO_HOME_PORT}}@$ORG_WG_DO_HOME_PORT_D64@" digitalocean_ubuntu_userdata.sh
-          sed -i -e "s@{{ORG_WG_DO_PRIVATE_KEY}}@$ORG_WG_DO_PRIVATE_KEY_D64@" digitalocean_ubuntu_userdata.sh
-          sed -i -e "s@{{ORG_WG_HOME_PUBLIC_KEY}}@$ORG_WG_HOME_PUBLIC_KEY_D64@" digitalocean_ubuntu_userdata.sh
-          sed -i -e "s@{{ORG_WG_DO_HOME_PRESHAREDKEY}}@$ORG_WG_DO_HOME_PRESHAREDKEY_D64@" digitalocean_ubuntu_userdata.sh
+          export ORG_WG_DO_HOME_PORT=$(echo ${{ secrets.ORG_WG_DO_HOME_PORT }} | base64 -d)
+          export ORG_WG_DO_PRIVATE_KEY=$(echo ${{ secrets.ORG_WG_DO_PRIVATE_KEY }} | base64 -d)
+          export ORG_WG_HOME_PUBLIC_KEY=$(echo ${{ secrets.ORG_WG_HOME_PUBLIC_KEY }} | base64 -d)
+          export ORG_WG_DO_HOME_PRESHAREDKEY=$(echo ${{ secrets.ORG_WG_DO_HOME_PRESHAREDKEY }} | base64 -d)
+          sed -i -e "s@{{ORG_WG_DO_HOME_PORT}}@$ORG_WG_DO_HOME_PORT@" digitalocean_ubuntu_userdata.sh
+          sed -i -e "s@{{ORG_WG_DO_PRIVATE_KEY}}@$ORG_WG_DO_PRIVATE_KEY@" digitalocean_ubuntu_userdata.sh
+          sed -i -e "s@{{ORG_WG_HOME_PUBLIC_KEY}}@$ORG_WG_HOME_PUBLIC_KEY@" digitalocean_ubuntu_userdata.sh
+          sed -i -e "s@{{ORG_WG_DO_HOME_PRESHAREDKEY}}@$ORG_WG_DO_HOME_PRESHAREDKEY@" digitalocean_ubuntu_userdata.sh
 
           mkdir ~/.ssh # for new RSA key created in next step
           ./do -fn=createNewServer -tag=traefik
@@ -84,6 +87,7 @@ jobs:
 
           # deploy traefik to droplet
           ssh root@$NEW_SERVER_IPV4 "\
+            export SYNCTHING_HOSTNAME=$(echo ${{ secrets.ORG_CLOUD_SYNCTHING_HOSTNAME }} | base64 -d) && \
             docker run -d --name ipv6nat --cap-drop ALL --cap-add NET_ADMIN --cap-add NET_RAW --network host --restart unless-stopped -v /var/run/docker.sock:/var/run/docker.sock:ro robbertkl/ipv6nat && \
             docker run -d --restart=always \
               -e DO_AUTH_TOKEN=${{ secrets.CTX_DIGITALOCEAN_DNS_TOKEN }} \
@@ -104,7 +108,7 @@ jobs:
               --label='traefik.http.middlewares.https-redirect.redirectscheme.scheme=https' \
               --label='traefik.http.middlewares.https-redirect.redirectscheme.permanent=true' \
               --label='traefik.http.middlewares.https-redirect.redirectscheme.port=443' \
-              -p 80:80 -p 443:443 --name traefik traefik:2.7 \
+              -p 80:80 -p 443:443 --name traefik traefik:2.8 \
               --accesslog.filepath=/var/log/traefik/access.log \
               --log.filepath=/var/log/traefik/traefik.log --log.level=WARN \
               --api.dashboard=false --providers.docker.exposedByDefault=false --providers.file.filename=/dynamic_conf.yml \
@@ -116,11 +120,11 @@ jobs:
               --certificatesResolvers.letsencrypt.acme.dnsChallenge.provider=digitalocean \
               --certificatesResolvers.letsencrypt.acme.dnsChallenge.delayBeforeCheck=5 && \
             docker run -d --restart=always \
-              -v /root/syncthing:/var/syncthing --hostname=${{ secrets.SYNCTHING_HOSTNAME }} \
+              -v /root/syncthing:/var/syncthing --hostname=$SYNCTHING_HOSTNAME \
               --label='traefik.enable=true' \
               --label='traefik.http.routers.syncthing.tls.certResolver=letsencrypt' \
-              --label='traefik.http.routers.syncthing.tls.domains=${{ secrets.SYNCTHING_HOSTNAME }}' \
-              --label='traefik.http.routers.syncthing.rule=Host(\`${{ secrets.SYNCTHING_HOSTNAME }}\`)' \
+              --label='traefik.http.routers.syncthing.tls.domains=$SYNCTHING_HOSTNAME' \
+              --label='traefik.http.routers.syncthing.rule=Host(\`$SYNCTHING_HOSTNAME\`)' \
               --label='traefik.http.routers.syncthing.middlewares=http-ratelimit@file,secHeaders@file,api_auth' \
               --label='traefik.http.routers.syncthing.service=syncthing-svc' \
               --label='traefik.http.services.syncthing-svc.loadbalancer.server.port=8384' \
