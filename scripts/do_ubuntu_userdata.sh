@@ -59,14 +59,14 @@ apt-get -y install wireguard ca-certificates curl gnupg lsb-release iptables-per
 cat > /etc/wireguard/wg.conf << EOF
 [Interface]
 Address = 10.9.0.1/24,fd42:42:42::1/64
-ListenPort = {{ORG_WG_DO_HOME_PORT}}
-PrivateKey = {{ORG_WG_DO_PRIVATE_KEY}}
+ListenPort = {{WG_DO_HOME_PORT}}
+PrivateKey = {{WG_DO_PRIVATE_KEY}}
 
 #pixel6
 [Peer]
-PublicKey = {{ORG_WG_HOME_PUBLIC_KEY}}
+PublicKey = {{WG_HOME_PUBLIC_KEY}}
 AllowedIPs = 10.9.0.2/32,fd42:42:42::2/128
-PresharedKey = {{ORG_WG_DO_HOME_PRESHAREDKEY}}
+PresharedKey = {{WG_DO_HOME_PRESHAREDKEY}}
 EOF
 
 wg-quick up wg
