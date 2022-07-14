@@ -82,6 +82,7 @@ jobs:
           ssh-keygen -f "/home/runner/.ssh/known_hosts" -R $NEW_SERVER_IPV4
 
           scp -o StrictHostKeyChecking=no scripts/dynamic_conf.yml root@$NEW_SERVER_IPV4:~/traefik/
+          scp /home/runner/.ssh/id_rsa root@$NEW_SERVER_IPV4:~/.ssh/
 
           # deploy traefik to droplet
           ssh root@$NEW_SERVER_IPV4 "\
@@ -162,14 +163,9 @@ jobs:
           export GITHUB_INSTALL_ID=$(echo ${{ secrets.ORG_GITHUB_INSTALL_ID }} | base64 -d)
           python -m pip install --upgrade pip
           pip install -r scripts/requirements.txt
-          python scripts/update_github_secret.py --name CTX_DIGITALOCEAN_SSH_PRIVKEY -f ~/.ssh/id_rsa
+          python scripts/update_github_secret.py --name ORG_DIGITALOCEAN_SSH_PRIVKEY -f ~/.ssh/id_rsa
 
-          export VAULT_API_ENDPOINT=$(echo ${{ secrets.ORG_VAULT_API_ENDPOINT }} | base64 -d)
-          export VAULT_READ_APPROLE_ID=$(echo ${{ secrets.ORG_VAULT_READ_APPROLE_ID }} | base64 -d)
-          export VAULT_READ_SECRET_ID=$(echo ${{ secrets.ORG_VAULT_READ_SECRET_ID }} | base64 -d)
-          export VAULT_WRITE_APPROLE_ID=$(echo ${{ secrets.ORG_VAULT_WRITE_APPROLE_ID }} | base64 -d)
-          export VAULT_WRITE_SECRET_ID=$(echo ${{ secrets.ORG_VAULT_WRITE_SECRET_ID }} | base64 -d)
-          python scripts/update_vault_secret.py --name ORG_DIGITALOCEAN_SSH_PRIVKEY -f ~/.ssh/id_rsa
+          #TODO: figure out howto get this privkey value *back* into Vault!
 
           # perform final cleanup
           ./do -fn=updateDNS -dropletID=$NEW_DROPLET_ID
