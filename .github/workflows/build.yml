@@ -46,7 +46,8 @@ jobs:
           export SYNCTHING_CERT=$(echo ${{ secrets.ORG_CLOUD_SYNCTHING_CERT }} | base64 -d)
           export TITAN_PUBLIC_KEY=$(echo ${{ secrets.ORG_TITAN_PUBLIC_KEY }} | base64 -d)
           export ACME_JSON=$(echo ${{ secrets.ORG_ACME_JSON }} | base64 -d)
-          envsubst '${ACKDE_HOST_SSH_KEY_PRIV_B64} ${ACKDE_HOST_SSH_KEY_PUB_B64} ${SERVER_DEPLOY_CACERT_B64} ${SERVER_DEPLOY_SECRET_B64} ${SERVER_DEPLOY_PUBLIC_B64} ${TITAN_PUBLIC_KEY} ${ACME_JSON} ${SYNCTHING_CONFIG_B64} ${SYNCTHING_KEY} ${SYNCTHING_CERT}' < scripts/do_ubuntu_userdata.sh > digitalocean_ubuntu_userdata.sh
+          #envsubst '${ACKDE_HOST_SSH_KEY_PRIV_B64} ${ACKDE_HOST_SSH_KEY_PUB_B64} ${SERVER_DEPLOY_CACERT_B64} ${SERVER_DEPLOY_SECRET_B64} ${SERVER_DEPLOY_PUBLIC_B64} ${TITAN_PUBLIC_KEY} ${ACME_JSON} ${SYNCTHING_CONFIG_B64} ${SYNCTHING_KEY} ${SYNCTHING_CERT}' < scripts/do_ubuntu_userdata.sh > digitalocean_ubuntu_userdata.sh
+          envsubst '${SERVER_DEPLOY_CACERT_B64} ${SERVER_DEPLOY_SECRET_B64} ${SERVER_DEPLOY_PUBLIC_B64} ${TITAN_PUBLIC_KEY} ${ACME_JSON} ${SYNCTHING_CONFIG_B64} ${SYNCTHING_KEY} ${SYNCTHING_CERT}' < scripts/do_ubuntu_userdata.sh > digitalocean_ubuntu_userdata.sh
 
           export BUILD_HOST=$(echo ${{ secrets.ORG_BUILD_HOST }} | base64 -d)
           export MASTER_HOST=$(echo ${{ secrets.ORG_MASTER_HOST }} | base64 -d)
