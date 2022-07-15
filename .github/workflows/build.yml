@@ -4,10 +4,6 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
-    inputs:
-      ca_pub_fingerprint:
-        description: fingerprint of CA signed user cert
-        required: false
 
 jobs:
   build:
@@ -55,3 +51,6 @@ jobs:
           export SERVERS="ubuntu@$MASTER_HOST ubuntu@$SLAVE_HOST ackersond@$BUILD_HOST"
           export GITHUB_APP_CLIENT_ID=$(echo ${{ secrets.ORG_GITHUB_APP_CLIENT_ID }} | base64 -d)
           export GITHUB_SECRETS_PK_PEM=$(echo ${{ secrets.ORG_GITHUB_SECRETS_PK_PEM }} | base64 -d)
+
+          mkdir ~/.ssh # for new RSA key created in next step
+          ./do -fn=createNewServer -tag=traefik
