@@ -50,7 +50,143 @@ jobs:
           export GITHUB_APP_CLIENT_ID=$(echo ${{ secrets.ORG_GITHUB_APP_CLIENT_ID }} | base64 -d)
           export GITHUB_SECRETS_PK_PEM=$(echo ${{ secrets.ORG_GITHUB_SECRETS_PK_PEM }} | base64 -d)
 
-          # for new RSA key created in next step
-          mkdir ~/.ssh
+          mkdir ~/.ssh # for new RSA key created in next step
+          ./do -fn=createNewServer -tag=traefik
 
-          ls -lrt
+          public_ip_address=$(curl -s https://checkip.amazonaws.com)
+          source /tmp/new_digital_ocean_droplet_params
+
+          ./do -fn=firewallSSH -allow=true -ip=$public_ip_address
+
+          sudo apt-get -y install nmap
+          while [ `nmap $NEW_SERVER_IPV4 -PN -p ssh | egrep 'open|closed|filtered' | awk '{print $2}'` == "closed" ]
+          do
+            echo "ssh not available..."
+            sleep 5
+          done
+
+          # prepare Traefik directory
+          ssh -o StrictHostKeyChecking=no root@$NEW_SERVER_IPV4 "\
+            mkdir -p traefik/logs &&
+            cloud-init status --wait > /dev/null 2>&1
+            [ $? -ne 0 ] && echo 'Cloud-init failed' && exit 1
+            echo 'Cloud-init succeeded at ' `date -R`  > ~/post-cloud-init.log"
+
+          # Cloud-init setup new host keys - let's ditch the orig ones
+          ssh-keygen -f "/home/runner/.ssh/known_hosts" -R $NEW_SERVER_IPV4
+
+          scp -o StrictHostKeyChecking=no scripts/dynamic_conf.yml root@$NEW_SERVER_IPV4:~/traefik/
+          scp /home/runner/.ssh/id_rsa root@$NEW_SERVER_IPV4:~/.ssh/
+
+          # deploy traefik to droplet
+          ssh root@$NEW_SERVER_IPV4 "\
+            docker run -d --name ipv6nat --cap-drop ALL --cap-add NET_ADMIN --cap-add NET_RAW --network host --restart unless-stopped -v /var/run/docker.sock:/var/run/docker.sock:ro robbertkl/ipv6nat && \
+            docker run -d --restart=always \
+              -e DO_AUTH_TOKEN=$(echo ${{ secrets.ORG_DIGITALOCEAN_DNS_TOKEN }} | base64 -d) \
+              -v /var/run/docker.sock:/var/run/docker.sock:ro \
+              -v ~/traefik/logs:/var/log/traefik/ \
+              -v ~/traefik/acme.json:/acme.json \
+              -v ~/traefik/dynamic_conf.yml:/dynamic_conf.yml \
+              --label='traefik.enable=true' \
+              --label='traefik.http.middlewares.api_auth.basicauth.users=$(echo ${{ secrets.ORG_CLOUD_SYNCTHING_BASIC_AUTH_USER }} | base64 -d):$(echo ${{ secrets.ORG_CLOUD_SYNCTHING_BASIC_AUTH_PASS }} | base64 -d)' \
+              --label='traefik.http.routers.api.entrypoints=web,secure' \
+              --label='traefik.http.routers.api.middlewares=http-ratelimit@file,secHeaders@file,api_auth' \
+              --label='traefik.http.routers.api.rule=Host(\`monitor.ackerson.de\`)' \
+              --label='traefik.http.routers.api.service=api@internal' \
+              --label='traefik.http.routers.api.tls.certResolver=letsencrypt' \
+              --label='traefik.http.routers.api.tls.domains=monitor.ackerson.de' \
+              --label='traefik.http.routers.https-redirect.rule=HostRegexp(\`{any:.*}\`)' \
+              --label='traefik.http.routers.https-redirect.middlewares=https-redirect@docker' \
+              --label='traefik.http.middlewares.https-redirect.redirectscheme.scheme=https' \
+              --label='traefik.http.middlewares.https-redirect.redirectscheme.permanent=true' \
+              --label='traefik.http.middlewares.https-redirect.redirectscheme.port=443' \
+              -p 80:80 -p 443:443 --name traefik traefik:2.8 \
+              --accesslog.filepath=/var/log/traefik/access.log \
+              --log.filepath=/var/log/traefik/traefik.log --log.level=WARN \
+              --api.dashboard=false --providers.docker.exposedByDefault=false --providers.file.filename=/dynamic_conf.yml \
+              --entrypoints.web.address=:80 --entrypoints.secure.address=:443 \
+              --entryPoints.web.forwardedHeaders.trustedIPs=172.17.0.1/24,fd00::/80 \
+              --entryPoints.secure.forwardedHeaders.trustedIPs=172.17.0.1/24,fd00::/80 \
+              --certificatesResolvers.letsencrypt.acme.email=dan@ackerson.de \
+              --certificatesResolvers.letsencrypt.acme.storage=acme.json \
+              --certificatesResolvers.letsencrypt.acme.dnsChallenge.provider=digitalocean \
+              --certificatesResolvers.letsencrypt.acme.dnsChallenge.delayBeforeCheck=5 && \
+            docker run -d --restart=always \
+              -v /root/syncthing:/var/syncthing --hostname=$(echo ${{ secrets.ORG_CLOUD_SYNCTHING_HOSTNAME }} | base64 -d) \
+              --label='traefik.enable=true' \
+              --label='traefik.http.routers.syncthing.tls.certResolver=letsencrypt' \
+              --label='traefik.http.routers.syncthing.tls.domains=$(echo ${{ secrets.ORG_CLOUD_SYNCTHING_HOSTNAME }} | base64 -d)' \
+              --label='traefik.http.routers.syncthing.rule=Host(\`$(echo ${{ secrets.ORG_CLOUD_SYNCTHING_HOSTNAME }} | base64 -d)\`)' \
+              --label='traefik.http.routers.syncthing.middlewares=http-ratelimit@file,secHeaders@file,api_auth' \
+              --label='traefik.http.routers.syncthing.service=syncthing-svc' \
+              --label='traefik.http.services.syncthing-svc.loadbalancer.server.port=8384' \
+              -p 8384:8384 -p 22000:22000/tcp -p 22000:22000/udp --name syncthing syncthing/syncthing:latest"
+
+          # New server is up and running - prepare the old one for death
+          # retrieve current deployment priv key
+          cat <<EOF >~/.ssh/id_rsa_old
+          $(echo ${{ secrets.ORG_DIGITALOCEAN_SSH_PRIVKEY }} | base64 -d)
+          EOF
+          chmod 400 ~/.ssh/id_rsa_old
+
+          export SLACK_NOTIFY_TOKEN=$(echo ${{ secrets.ORG_SLACK_NOTIFICATIONS_TOKEN }} | base64 -d)
+
+          # update Vault CIDRs with new addresses
+          curl -s -X POST -d token=$SLACK_NOTIFY_TOKEN -d channel=C33QYV3PW \
+            -d text="vfa update $NEW_SERVER_IPV6,$NEW_SERVER_IPV4" https://slack.com/api/chat.postMessage
+
+          # Use existing server to update new firewall rules for home network & vault instance
+          envsubst '${MASTER_HOST} ${SLAVE_HOST} ${BUILD_HOST} ${NEW_SERVER_IPV6} ${OLD_SERVER_IPV6}' < scripts/firewall_rules.sh > fw_rules.sh
+          if scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa_old fw_rules.sh root@ackerson.de:~/ ; then
+            if ! ssh -i ~/.ssh/id_rsa_old root@ackerson.de /bin/bash /root/fw_rules.sh ; then
+              curl -s -o /dev/null -X POST -d token=$SLACK_NOTIFY_TOKEN -d channel=C092UE0H4 \
+                -d text="Failed to update firewall rules: ${OLD_SERVER_IPV6} => ${NEW_SERVER_IPV6}" \
+                https://slack.com/api/chat.postMessage
+            fi
+          else
+            curl -s -o /dev/null -X POST -d token=$SLACK_NOTIFY_TOKEN -d channel=C092UE0H4 \
+              -d text="Unable to reach ackerson.de => Perhaps this is first run?" https://slack.com/api/chat.postMessage
+          fi
+
+          # update PRIVKEY to new one for subsequent deployments
+          # grab github.py from pi-ops repo
+          curl -o scripts/github.py https://raw.githubusercontent.com/ackersonde/pi-ops/master/scripts/secrets/github.py
+          curl -o scripts/vault.py https://raw.githubusercontent.com/ackersonde/pi-ops/master/scripts/secrets/vault.py
+          curl -o scripts/requirements.txt https://raw.githubusercontent.com/ackersonde/pi-ops/master/scripts/secrets/requirements.txt
+
+          export GITHUB_INSTALL_ID=$(echo ${{ secrets.ORG_GITHUB_INSTALL_ID }} | base64 -d)
+          python -m pip install --upgrade pip
+          pip install -r scripts/requirements.txt
+          python scripts/update_github_secret.py --name ORG_DIGITALOCEAN_SSH_PRIVKEY -f ~/.ssh/id_rsa
+
+          # perform final cleanup
+          ./do -fn=updateDNS -dropletID=$NEW_DROPLET_ID
+          ./do -fn=firewallSSH -allow=false -ip=$public_ip_address
+          ./do -fn=deleteServer -dropletID=$OLD_DROPLET_ID
+          ./do -fn=deleteSSHKey -sshKeyID=$DEPLOY_KEY_ID
+
+          GITHUB_USERNAME=$(echo ${{ secrets.ORG_GITHUB_PERSONAL_ACCESS_USERNAME }} | base64 -d)
+          GITHUB_TOKEN=$(echo ${{ secrets.ORG_GITHUB_PERSONAL_ACCESS_TOKEN }} | base64 -d)
+          # Redeploy homepage, bender, telegram-bot to new server
+          curl -Ss -X POST -u "$GITHUB_USERNAME:$GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/ackersonde/ackerson.de-go/actions/workflows/build.yml/dispatches \
+            -d '{"ref":"master"}'
+          curl -Ss -X POST -u "$GITHUB_USERNAME:$GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/ackersonde/bender-slackbot/actions/workflows/build.yml/dispatches \
+            -d '{"ref":"master"}'
+          curl -Ss -X POST -u "$GITHUB_USERNAME:$GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/ackersonde/telegram-bot/actions/workflows/build.yml/dispatches \
+            -d '{"ref":"main"}'
+          curl -Ss -X POST -u "$GITHUB_USERNAME:$GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/ackersonde/hsm-planb.de/actions/workflows/build.yml/dispatches \
+            -d '{"ref":"master"}'
+
+          rm digitalocean_ubuntu_userdata.sh ~/.ssh/* /tmp/new_digital_ocean_droplet_params
+
+          curl -s -o /dev/null -X POST -d token=$SLACK_NOTIFY_TOKEN -d channel=C092UE0H4 \
+            -d text="<https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|$GITHUB_REPOSITORY @ $GITHUB_RUN_ID>" \
+            https://slack.com/api/chat.postMessage
