@@ -9,7 +9,7 @@ echo -n "$TITAN_PUBLIC_KEY" | tee -a /root/.ssh/authorized_keys
 # *.ackerson.de SSL cert
 mkdir /root/traefik
 cat <<EOF >/root/traefik/acme.json
-$ACME_JSON
+$(echo $ACME_JSON_B64 | base64 -d)
 EOF
 chmod 600 /root/traefik/acme.json
 
