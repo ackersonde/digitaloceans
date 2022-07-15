@@ -18,7 +18,10 @@ jobs:
           go-version: '1.18'
       - name: Build application
         run: |
+          echo "START"
           go mod tidy
+          ls -lrt
+
           go build do.go
 
           export WG_DO_HOME_PORT=$(echo ${{ secrets.ORG_WG_DO_HOME_PORT }} | base64 -d)
