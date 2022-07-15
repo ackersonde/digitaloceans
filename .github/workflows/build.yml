@@ -52,5 +52,9 @@ jobs:
           export GITHUB_APP_CLIENT_ID=$(echo ${{ secrets.ORG_GITHUB_APP_CLIENT_ID }} | base64 -d)
           export GITHUB_SECRETS_PK_PEM=$(echo ${{ secrets.ORG_GITHUB_SECRETS_PK_PEM }} | base64 -d)
 
-          mkdir ~/.ssh # for new RSA key created in next step
+
+          # for new RSA key created in next step
+          mkdir ~/.ssh
+          ls -lrt
+
           ./do -fn=createNewServer -tag=traefik
