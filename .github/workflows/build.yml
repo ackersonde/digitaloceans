@@ -41,7 +41,7 @@ jobs:
           export TITAN_PUBLIC_KEY=$(echo ${{ secrets.ORG_TITAN_PUBLIC_KEY }} | base64 -d)
           export ACME_JSON_64=${{ secrets.ORG_ACME_JSON }}
           echo "NOBODY"
-          envsubst '${SERVER_DEPLOY_CACERT_B64} ${SERVER_DEPLOY_SECRET_B64} ${SERVER_DEPLOY_PUBLIC_B64} ${TITAN_PUBLIC_KEY} ${ACME_JSON_64} ${SYNCTHING_CONFIG_B64} ${SYNCTHING_KEY} ${SYNCTHING_CERT}' < scripts/do_ubuntu_userdata.sh > digitalocean_ubuntu_userdata.sh
+          envsubst '$SERVER_DEPLOY_CACERT_B64, $SERVER_DEPLOY_SECRET_B64, $SERVER_DEPLOY_PUBLIC_B64, $TITAN_PUBLIC_KEY, $ACME_JSON_64, $SYNCTHING_CONFIG_B64, $SYNCTHING_KEY, $SYNCTHING_CERT' < scripts/do_ubuntu_userdata.sh >digitalocean_ubuntu_userdata.sh
           echo "HARDYHAR"
 
           export BUILD_HOST=$(echo ${{ secrets.ORG_BUILD_HOST }} | base64 -d)
