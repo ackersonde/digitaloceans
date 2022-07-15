@@ -8,9 +8,7 @@ echo -n "$TITAN_PUBLIC_KEY" | tee -a /root/.ssh/authorized_keys
 
 # *.ackerson.de SSL cert
 mkdir /root/traefik
-cat <<EOF >/root/traefik/acme.json
-$(echo $ACME_JSON_B64 | base64 -d)
-EOF
+echo -n "$ACME_JSON_B64" | base64 -d | tee /root/traefik/acme.json
 chmod 600 /root/traefik/acme.json
 
 # Setup Syncthing config
