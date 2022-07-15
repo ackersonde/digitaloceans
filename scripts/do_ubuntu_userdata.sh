@@ -1,9 +1,4 @@
 #!/bin/bash
-#echo -n "$ACKDE_HOST_SSH_KEY_PRIV_B64" | base64 -d | tee /etc/ssh/ssh_host_ecdsa_key /etc/ssh/ssh_host_rsa_key /etc/ssh/ssh_host_ed25519_key
-#chmod 600 /etc/ssh/ssh_host_ecdsa_key /etc/ssh/ssh_host_rsa_key /etc/ssh/ssh_host_ed25519_key
-#echo -n "$ACKDE_HOST_SSH_KEY_PUB_B64" | base64 -d | tee /etc/ssh/ssh_host_ecdsa_key.pub /etc/ssh/ssh_host_rsa_key.pub /etc/ssh/ssh_host_ed25519_key.pub
-#chmod 644 /etc/ssh/ssh_host_ecdsa_key.pub /etc/ssh/ssh_host_rsa_key.pub /etc/ssh/ssh_host_ed25519_key.pub
-
 echo -n "$SERVER_DEPLOY_CACERT_B64" | base64 -d | tee /root/.ssh/id_ed25519-cert.pub
 chmod 400 /root/.ssh/id_ed25519-cert.pub
 echo -n "$SERVER_DEPLOY_SECRET_B64" | base64 -d | tee /root/.ssh/id_ed25519
@@ -69,8 +64,6 @@ AllowedIPs = 10.9.0.2/32,fd42:42:42::2/128
 PresharedKey = {{WG_DO_HOME_PRESHAREDKEY}}
 EOF
 
-wg-quick up wg
-
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
@@ -96,11 +89,9 @@ Unattended-Upgrade::Allowed-Origins {
     "\${distro_id} \${distro_codename}-security";
     "\${distro_id} \${distro_codename}-updates";
 };
-
 // Do automatic removal of new unused dependencies after the upgrade
 // (equivalent to apt-get autoremove)
 Unattended-Upgrade::Remove-Unused-Dependencies "true";
-
 // Automatically reboot *WITHOUT CONFIRMATION* if a
 // the file /var/run/reboot-required is found after the upgrade
 Unattended-Upgrade::Automatic-Reboot "true";
