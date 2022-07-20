@@ -25,11 +25,11 @@ http:
         average: 100
         burst: 50
         period: 3s
-      sourceCriterion:
-        ipStrategy:
-          excludedIPs:
-            - "192.168.178.0/24"
-            - "2a02:810d:c0:581b::/64"
+        sourceCriterion:
+          ipStrategy:
+            excludedIPs:
+              - "192.168.178.0/24"
+              - "2a02:810d:c0:581b::/64"
 
     secHeaders:
       headers:
