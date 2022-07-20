@@ -25,6 +25,10 @@ http:
         average: 100
         burst: 50
         period: 3s
+      sourceCriterion:
+        ipStrategy:
+          excludedIPs:
+            - "192.168.178.0/24"
 
     secHeaders:
       headers:
